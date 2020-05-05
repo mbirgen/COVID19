@@ -1,0 +1,229 @@
+---
+title: "Covid-19 Analysis"
+author: "Mariah Birgen"
+output: html_notebook
+---
+
+```{r initialization, echo=FALSE}
+suppressPackageStartupMessages( require(dplyr))
+suppressPackageStartupMessages( require(lubridate))
+suppressPackageStartupMessages( require(ggplot2))
+```
+
+Load data
+```{r load, echo = FALSE}
+covid19 <- read.csv("covid19.csv", stringsAsFactors = FALSE)
+covid19$date <- mdy(covid19$date)
+clearn <- !is.na(covid19$positive)
+clean <- covid19[clearn,]
+cdeaths <- covid19[!is.na(covid19$deaths),]
+lastrow <- nrow(clean)
+clean <- clean %>% mutate(
+  #New.Positive[lastrow] = positive[lastrow] - positive[lastrow-1]) 
+  negative = Total.Tested - positive,
+  Percent.Pos = positive/Total.Tested*100,
+  np_7day = rollmean(New.Positive, k=7, fill = NA)
+)
+```
+```{r, echo = FALSE}
+today <- cdeaths[nrow(cdeaths),]
+day <- today$date
+new_pos <- today$New.Positive
+percent_pos <- today$New.Percent.Positive
+percent_hospital <- today$Percent.Hospitalized
+sick <- today$Still.Sick
+IowaPop <- 3.155*10^6
+```
+# Summary `r day`
+
+Today we had `r new_pos` new positive tests which is `r percent_pos` percent of the total tests recorded in the last 24 hours. In Iowa there are `r sick` people still sick with COVID-19 and `r percent_hospital` percent of those people are hospitalized. From the logisitc growth model, we predict that in 14 days, Iowa will have `r predict14` infected people.
+
+## View Data
+So, it turns out to be very difficult to find past data in the State of Iowa since they re-publish everything daily.  Here are the last 6 days of data if you are interested:
+```{r}
+tail(clean)
+```
+
+# Data Exploration
+
+## Positive Tests
+
+### Exponential Model
+Run a linear model on the logarithm of the positive cases.
+```{r log model, error=FALSE}
+qplot(date, log(positive), data =clean) + geom_point() + geom_smooth()+
+  stat_smooth(method = "lm", col = "red") 
+```
+
+```{r, echo = FALSE}
+model0 <- lm(log(positive)~date, data=clean)
+#model0$coefficients[2]
+positive_doubling_time <- log(2)/model0$coefficients[2]
+#positive_doubling_time
+```
+For the model $positive = e^{k date}$, $k=$ `r model0$coefficients[2]`. 
+Estimated doubling time for positive cases is `r positive_doubling_time` days.  Here is what that looks like on the original data.
+```{r, echo = FALSE}
+x = as.numeric(clean$date)
+y = exp(model0$coefficients[1]+ model0$coefficients[2] *x)
+A = data.frame(date = clean$date, positive = clean$positive, y = y)
+
+ggplot(A, aes(date, y = value, color = variable)) + 
+    geom_point(aes(y = positive, col = "positive")) +     geom_line(aes(y = y, col = "model")) 
+
+```
+
+### Modified Exponential Model
+By now there is strong evidence that the curve is flattening. We can create a new linear model that uses the more recent data to improve our model. Let's look to see what happens if we only use data from later when we were doing more testing.
+```{r, echo = FALSE}
+latedata <- clean[-(1:10),]
+model4 <- lm(log(positive)~date, data=latedata)
+positive_doubling_time2 <- log(2)/model4$coefficients[2]
+qplot(date, log(positive), data =latedata) + geom_point() + geom_smooth()+
+  stat_smooth(method = "lm", col = "purple") 
+```
+For the model $positive = e^{k date}$, $k=$ `r model4$coefficients[2]`. 
+Estimated doubling time for positive cases is `r positive_doubling_time2` days.  Here is what that looks like on the original data.
+```{r, echo = FALSE}
+x = as.numeric(latedata$date)
+y = exp(model4$coefficients[1]+ model4$coefficients[2] *x)
+A = data.frame(date = latedata$date, positive = latedata$positive, y = y)
+ggplot(A, aes(date, y = value, color = variable)) + 
+    geom_point(aes(y = positive, col = "positive")) +     geom_line(aes(y = y, col = "model")) 
+```
+
+## Deaths
+
+
+### Exponential Model
+We will start the data when we have non-zero deaths.
+```{r, echo = FALSE}
+zerodeaths <- cdeaths$deaths == 0
+cdeaths <- cdeaths[!zerodeaths,]
+```
+
+```{r, echo = FALSE}
+qplot(date, log(deaths), data =cdeaths) + geom_point() + geom_smooth()+
+  stat_smooth(method = "lm", col = "red")
+```
+
+```{r, echo = FALSE}
+model <- lm(log(deaths)~date, data=cdeaths)
+#model$coefficients[2]
+death_doubling_time <- log(2)/model$coefficients[2]
+#death_doubling_time
+```
+For the model $deaths = e^{k date}$, $k=$ `r model$coefficients[2]`. 
+Estimated time for deaths to double is `r death_doubling_time` days.
+
+### Later Data
+As above, let's look at the same models, but only after we got serious about testing.
+
+```{r , echo = FALSE}
+latedata2 <- latedata[-(1:8),]
+qplot(date, log(deaths), data =latedata2) + geom_point() + geom_smooth()+
+  stat_smooth(method = "lm", col = "red")
+```
+
+```{r, echo = FALSE}
+model5 <- lm(log(deaths)~date, data=latedata2)
+#model$coefficients[2]
+death_doubling_time2 <- log(2)/model5$coefficients[2]
+#death_doubling_time
+```
+For the model $deaths = e^{k date}$, $k=$ `r model5$coefficients[2]`. 
+Estimated time for deaths to double is `r death_doubling_time2` days.
+
+```{r, echo = FALSE}
+x = as.numeric(latedata2$date)
+y = exp(model5$coefficients[1]+ model5$coefficients[2] *x)
+B = data.frame(date = latedata2$date, deaths = latedata2$deaths, y = y)
+ggplot(B, aes(date, y = value, color = variable)) + 
+    geom_point(aes(y = deaths, col = "deaths")) +     geom_line(aes(y = y, col = "model")) 
+```
+### Logistic Model
+To try to fit a logistic model to the data, we want to fit a parabola to the rate of change, but the input variable is cases or deaths and not time.  This is because the logistic model comes from the differential equation $\displaystyle{\frac{dP}{dt}= kP(1-\frac{P}{M})}$.  Note that this equation as a function of $P$ is a parabola with zeroes at $P=0$ and $P=M$.
+```{r}
+clean <- clean[-c(1,10),]
+with(clean, plot(positive, New.Positive, pch=16, xlab = "Positive Counts", ylab = "Rate of Change of Positive", cex.lab = 1.3, col = "blue"))
+```
+Now, it doesn't really look quadratic, but we are not going to let that stop us from mathematics. Next, we will fit a quadratic model to the data.
+```{r}
+clean$P2 <- as.numeric(clean$positive)^2
+quadratic <-lm(New.Positive ~ positive + P2-1, data = clean)
+r <- quadratic$coefficients[2]*(-1)
+M <- quadratic$coefficients[1]/r
+Mprint <- format(M, scientific = FALSE)
+predictedcounts <- with(clean,predict(quadratic,list(positive = positive, P2 = P2)))
+```
+Let's plot the model:
+```{r}
+with(clean, plot(positive, New.Positive, pch=16, xlab = "Positive Counts", ylab = "Rate of Change of Positive", cex.lab = 1.3, col = "blue"))
+with(clean,lines(positive, predictedcounts, col = "darkgreen", lwd = 3))
+IowaPercent <- M/IowaPop
+```
+So, we have a quadratic model that looks like $\frac{dP}{dt}$ = `r quadratic$coefficients[1]`$P^2$ + `r quadratic$coefficients[2]`$P$ = `r r`$P(1-P/$ `r Mprint`$)$. This is looking pretty good. In particular, because $M=$ `r Mprint`, we can estimate that `r IowaPercent` of Iowa's population will become infected.  We would like to see what that looks like for the original data. When R performs logistic modeling, it usually has binomial data and thus expects numbers that are between zero and one. We will use our estimate of $M$ to create postitive counts that are a percentage of $M$. 
+```{r, echo = FALSE}
+clean$binomial <- clean$positive/M
+mylogit <- glm(binomial ~ date, data = clean, family = "binomial")
+#ggplot(clean, aes(x=date, y=binomial)) + 
+ # geom_point() + 
+  #stat_smooth(method="glm", method.args=list(family="binomial"))
+ypredict <- predict(mylogit, list(date = clean$date), type = "response")*M
+qplot(date, positive, data = clean) +
+  #stat_smooth(method = "lm", col = "green") +
+  geom_line(aes(y = ypredict, col = "model"), size = 1.25) 
+```
+Okay, that looks quite good. What will it predict for the next 14 days?
+```{r, echo=FALSE}
+ndate <-seq(as.Date("2020-03-09"),as.Date(day + 14),by = 1)
+#play <- clean %>% filter(row_number() >= (n() - 7))
+play <- clean
+ypredict2 <- predict(mylogit, list(date =ndate), type = "response")*M
+df <- data.frame(date = ndate, model = ypredict2)
+df <- merge(df, play, all = TRUE)
+predict14 <- format(round(ypredict2[length(ypredict2)], digits = 0), scientific = FALSE)
+qplot(date, model, ylab = "Positive Cases", data = df, geom = "smooth") + 
+  #geom_line(size = 1.25, color = "red") +
+  geom_point(aes(y=positive), shape = 8) + theme(legend.position = 'right')
+```
+This predicts that in 14 days, Iowa will have `r predict14` infected people.
+
+## New Positives
+```{r, echo = FALSE}
+model4 <- lm(log(New.Positive) ~ date, data = clean)
+pred <- predict(model4, newdata = data.frame(date =clean$date))
+np_doubling_time <- log(2)/model4$coefficients[2]
+qplot(date, New.Positive, data = clean, geom = c("point", "smooth")) +
+  #stat_smooth(method = "lm", col = "green") +
+  geom_line(aes(y = exp(pred), col = "model")) + 
+  geom_line(aes(y=np_7day, col = "7 day average"), size = 1.25)
+  
+```
+For the model $new positives = e^{k date}$, $k=$ `r model4$coefficients[2]`. 
+Estimated time for new positives to double is `r np_doubling_time` days.
+
+
+
+## Alternative Modeling
+This didn't turn out well, but it is still here for historical perspective:
+
+### Positives Linear Model
+
+First run a linear model on positive test results.
+```{r, error=FALSE}
+qplot(date, positive, data =clean) + geom_point() + geom_smooth()+
+  stat_smooth(method = "lm", col = "red")
+```
+
+### Deaths Linear Model
+
+```{r linear model}
+qplot(date, deaths, data =cdeaths, rm.na=TRUE) + geom_point() + geom_smooth()+
+  stat_smooth(method = "lm", col = "red")
+model <- lm(deaths~date, data=cdeaths)
+#model$coefficients
+```
+
+
+
