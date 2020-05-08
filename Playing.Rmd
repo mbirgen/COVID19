@@ -8,6 +8,7 @@ output: html_notebook
 suppressPackageStartupMessages( require(dplyr))
 suppressPackageStartupMessages( require(lubridate))
 suppressPackageStartupMessages( require(ggplot2))
+suppressPackageStartupMessages( require(zoo))
 ```
 
 Load data
@@ -31,12 +32,13 @@ day <- today$date
 new_pos <- today$New.Positive
 percent_pos <- today$New.Percent.Positive
 percent_hospital <- today$Percent.Hospitalized
+percent_ICU <- round(today$ICU/today$hospitalized*100, digits = 1)
 sick <- today$Still.Sick
 IowaPop <- 3.155*10^6
 ```
 # Summary `r day`
 
-Today we had `r new_pos` new positive tests which is `r percent_pos` percent of the total tests recorded in the last 24 hours. In Iowa there are `r sick` people still sick with COVID-19 and `r percent_hospital` percent of those people are hospitalized. From the logisitc growth model, we predict that in 14 days, Iowa will have `r predict14` infected people.
+Today we had `r new_pos` new positive tests which is `r percent_pos` of the total tests recorded in the last 24 hours. In Iowa there are `r sick` people still sick with COVID-19 and `r percent_hospital` of those people are hospitalized. Of those who are hospitalized, `r percent_ICU`% are in the ICU. Finally, from the logisitc growth model which looks good, but is super sensitive to data, we predict that in 14 days, Iowa will have `r predict14` infected people which is `r IowaPercent`% of the population.
 
 ## View Data
 So, it turns out to be very difficult to find past data in the State of Iowa since they re-publish everything daily.  Here are the last 6 days of data if you are interested:
@@ -160,7 +162,7 @@ Let's plot the model:
 ```{r}
 with(clean, plot(positive, New.Positive, pch=16, xlab = "Positive Counts", ylab = "Rate of Change of Positive", cex.lab = 1.3, col = "blue"))
 with(clean,lines(positive, predictedcounts, col = "darkgreen", lwd = 3))
-IowaPercent <- M/IowaPop
+IowaPercent <- round(M/IowaPop*100, digits = 2)
 ```
 So, we have a quadratic model that looks like $\frac{dP}{dt}$ = `r quadratic$coefficients[1]`$P^2$ + `r quadratic$coefficients[2]`$P$ = `r r`$P(1-P/$ `r Mprint`$)$. This is looking pretty good. In particular, because $M=$ `r Mprint`, we can estimate that `r IowaPercent` of Iowa's population will become infected.  We would like to see what that looks like for the original data. When R performs logistic modeling, it usually has binomial data and thus expects numbers that are between zero and one. We will use our estimate of $M$ to create postitive counts that are a percentage of $M$. 
 ```{r, echo = FALSE}
@@ -174,7 +176,7 @@ qplot(date, positive, data = clean) +
   #stat_smooth(method = "lm", col = "green") +
   geom_line(aes(y = ypredict, col = "model"), size = 1.25) 
 ```
-Okay, that looks quite good. What will it predict for the next 14 days?
+Okay, that looks quite good. What will it predict for the next 28 days?
 ```{r, echo=FALSE}
 ndate <-seq(as.Date("2020-03-09"),as.Date(day + 14),by = 1)
 #play <- clean %>% filter(row_number() >= (n() - 7))
@@ -183,7 +185,12 @@ ypredict2 <- predict(mylogit, list(date =ndate), type = "response")*M
 df <- data.frame(date = ndate, model = ypredict2)
 df <- merge(df, play, all = TRUE)
 predict14 <- format(round(ypredict2[length(ypredict2)], digits = 0), scientific = FALSE)
-qplot(date, model, ylab = "Positive Cases", data = df, geom = "smooth") + 
+
+ndate <-seq(as.Date("2020-03-09"),as.Date(day + 28),by = 1)
+ypredict3 <- predict(mylogit, list(date =ndate), type = "response")*M
+df2 <- data.frame(date = ndate, model = ypredict3)
+df2 <- merge(df2, play, all = TRUE)
+qplot(date, model, ylab = "Positive Cases", data = df2, geom = "smooth") + 
   #geom_line(size = 1.25, color = "red") +
   geom_point(aes(y=positive), shape = 8) + theme(legend.position = 'right')
 ```
@@ -203,6 +210,25 @@ qplot(date, New.Positive, data = clean, geom = c("point", "smooth")) +
 For the model $new positives = e^{k date}$, $k=$ `r model4$coefficients[2]`. 
 Estimated time for new positives to double is `r np_doubling_time` days.
 
+# Store Predictions
+This section stores predictions.
+```{r}
+list <- data.frame(date = day, 
+          PositiveDoubling = positive_doubling_time, 
+          latePositiveDoubling = positive_doubling_time2, 
+          DeathDoubling = death_doubling_time, 
+          LateDeathDoubling = death_doubling_time2, 
+          NewPositiveDoubling = np_doubling_time,
+          LogisticR = r, 
+          LogisticM = M, 
+          FourteenDayPrediction = predict14
+          )
+if(predictions[nrow(predictions),1]!= day){
+  predictions = rbind(predictions, list)
+}
+
+write.csv(predictions, "Predictions.csv")
+```
 
 
 ## Alternative Modeling
