@@ -38,7 +38,7 @@ IowaPop <- 3.155*10^6
 ```
 # Summary `r day`
 
-Today we had `r new_pos` new positive tests which is `r percent_pos` of the total tests recorded in the last 24 hours. In Iowa there are `r sick` people still sick with COVID-19 and `r percent_hospital` of those people are hospitalized. Of those who are hospitalized, `r percent_ICU`% are in the ICU. Finally, from the logisitc growth model which looks good, but is super sensitive to data, we predict that in 14 days, Iowa will have `r predict14` infected people which is `r IowaPercent`% of the population.
+Today we had `r new_pos` new positive tests which is `r percent_pos` of the total tests recorded in the last 24 hours. In Iowa there are `r sick` people still sick with COVID-19 and `r percent_hospital` of those people are hospitalized. Of those who are hospitalized, `r percent_ICU`% are in the ICU. Finally, from the logistic growth model which looks good, but is super sensitive to data, we predict that in 14 days, Iowa will have `r predict14` infected people which is `r IowaPercent`% of the population.
 
 ## View Data
 So, it turns out to be very difficult to find past data in the State of Iowa since they re-publish everything daily.  Here are the last 6 days of data if you are interested:
@@ -49,6 +49,106 @@ tail(clean)
 # Data Exploration
 
 ## Positive Tests
+
+### Logistic Model
+To try to fit a logistic model to the data, we want to fit a parabola to the rate of change, but the input variable is cases or deaths and not time.  This is because the logistic model comes from the differential equation $\displaystyle{\frac{dP}{dt}= kP(1-\frac{P}{M})}$.  Note that this equation as a function of $P$ is a parabola with zeroes at $P=0$ and $P=M$.
+```{r}
+clean <- clean[-c(1,10),]
+with(clean, plot(positive, New.Positive, pch=16, xlab = "Positive Counts", ylab = "Rate of Change of Positive", cex.lab = 1.3, col = "blue"))
+```
+Now, it doesn't really look quadratic, but we are not going to let that stop us from mathematics. Next, we will fit a quadratic model to the data.
+```{r}
+clean$P2 <- as.numeric(clean$positive)^2
+quadratic <-lm(New.Positive ~ positive + P2-1, data = clean)
+r <- quadratic$coefficients[2]*(-1)
+M <- quadratic$coefficients[1]/r
+Mprint <- format(M, scientific = FALSE)
+predictedcounts <- with(clean,predict(quadratic,list(positive = positive, P2 = P2)))
+```
+Let's plot the model:
+```{r}
+with(clean, plot(positive, New.Positive, pch=16, xlab = "Positive Counts", ylab = "Rate of Change of Positive", cex.lab = 1.3, col = "blue"))
+with(clean,lines(positive, predictedcounts, col = "darkgreen", lwd = 3))
+IowaPercent <- round(M/IowaPop*100, digits = 2)
+```
+So, we have a quadratic model that looks like $\frac{dP}{dt}$ = `r quadratic$coefficients[1]`$P^2$ + `r quadratic$coefficients[2]`$P$ = `r r`$P(1-P/$ `r Mprint`$)$. This is looking pretty good. In particular, because $M=$ `r Mprint`, we can estimate that `r IowaPercent`% of Iowa's population will become infected.  We would like to see what that looks like for the original data. When R performs logistic modeling, it usually has binomial data and thus expects numbers that are between zero and one. We will use our estimate of $M$ to create positive counts that are a percentage of $M$. 
+```{r, echo = FALSE}
+logisticGrowthy <- function(data, M){
+data$binomial <- data$positive/M
+mylogit <- glm(binomial ~ date, data = data, family = "binomial")
+ypredict <- predict(mylogit, list(date = data$date), type = "response")*M
+}
+ypredict <- logisticGrowthy(clean, M)
+qplot(date, positive, data = clean) +
+  #stat_smooth(method = "lm", col = "green") +
+  geom_line(aes(y = ypredict, col = "model"), size = 1.25) 
+```
+Okay, that looks quite good. What will it predict for the next 28 days?
+```{r, echo=FALSE}
+ndate <-seq(as.Date("2020-03-09"),as.Date(day + 14),by = 1)
+#play <- clean %>% filter(row_number() >= (n() - 7))
+play <- clean
+ypredict2 <- predict(mylogit, list(date =ndate), type = "response")*M
+df <- data.frame(date = ndate, model = ypredict2)
+df <- merge(df, play, all = TRUE)
+predict14 <- format(round(ypredict2[length(ypredict2)], digits = 0), scientific = FALSE)
+
+ndate <-seq(as.Date("2020-03-09"),as.Date(day + 28),by = 1)
+ypredict3 <- predict(mylogit, list(date =ndate), type = "response")*M
+df2 <- data.frame(date = ndate, model = ypredict3)
+df2 <- merge(df2, play, all = TRUE)
+qplot(date, model, ylab = "Positive Cases", data = df2, geom = "smooth") + 
+  #geom_line(size = 1.25, color = "red") +
+  geom_point(aes(y=positive), shape = 8) + theme(legend.position = 'right')
+```
+This predicts that in 14 days, Iowa will have `r predict14` infected people.
+
+## SIR Model
+This should be more interesting and probably won't be done for a week. The differential equations for the SIR model are:
+
+> $\frac{dS}{dt} = -r_1SI$,
+ $\frac{dR}{dt} = r_2I$, 
+ $\frac{dI}{dt} = -\frac{dS}{dt} - \frac{dR}{dt}$
+
+So, we may have enough data to estimate $r_1$ and $r_2$. We would do this using a linear model on the change of recovered to esitmate $r_2$ and then that model and the rate of change of infecteds to estimate $r_1$. We may have to use $M$ from the logistic growth model to estimate $S$.
+
+### Step 1: Estimate $r_2$
+```{r}
+SIR <- with(clean, data.frame(
+    dS = (-1)*diff(positive),
+    dR = diff(Recovered),
+    dI = diff(Still.Sick),
+    dD = diff(deaths)
+))
+SIR <- SIR %>% mutate(
+    R = clean$Recovered[-1],
+    I = clean$Still.Sick[-1],
+    day = clean$date[-1],
+    S = M - clean$positive[-1]
+    )
+SIR$day = as.POSIXct(SIR$day)
+SIR <- SIR[complete.cases(SIR),]
+```
+Let's first just graph our data
+```{r}
+qplot(day, data = SIR) + 
+    stat_smooth(aes( y = S),method = "loess") + 
+    stat_smooth( aes( y = I), color = "red", method = "loess") +
+    stat_smooth( aes( y = R), color = "green", method = "loess") +
+    theme(legend.position = "right")
+```
+Next, let's see about coefficients:
+```{r}
+dRmodel <- lm(dR ~ 0+I, data = SIR)
+r2 <- dRmodel$coefficients[1]
+dImodel <- lm (dS ~ 0 + S*I, data = SIR)
+r1 <- dImodel$coefficients[1]
+```
+
+Now we plug this into the DE solver.
+```{r}
+require(deSolve)
+```
 
 ### Exponential Model
 Run a linear model on the logarithm of the positive cases.
@@ -143,76 +243,48 @@ B = data.frame(date = latedata2$date, deaths = latedata2$deaths, y = y)
 ggplot(B, aes(date, y = value, color = variable)) + 
     geom_point(aes(y = deaths, col = "deaths")) +     geom_line(aes(y = y, col = "model")) 
 ```
-### Logistic Model
-To try to fit a logistic model to the data, we want to fit a parabola to the rate of change, but the input variable is cases or deaths and not time.  This is because the logistic model comes from the differential equation $\displaystyle{\frac{dP}{dt}= kP(1-\frac{P}{M})}$.  Note that this equation as a function of $P$ is a parabola with zeroes at $P=0$ and $P=M$.
-```{r}
-clean <- clean[-c(1,10),]
-with(clean, plot(positive, New.Positive, pch=16, xlab = "Positive Counts", ylab = "Rate of Change of Positive", cex.lab = 1.3, col = "blue"))
-```
-Now, it doesn't really look quadratic, but we are not going to let that stop us from mathematics. Next, we will fit a quadratic model to the data.
-```{r}
-clean$P2 <- as.numeric(clean$positive)^2
-quadratic <-lm(New.Positive ~ positive + P2-1, data = clean)
-r <- quadratic$coefficients[2]*(-1)
-M <- quadratic$coefficients[1]/r
-Mprint <- format(M, scientific = FALSE)
-predictedcounts <- with(clean,predict(quadratic,list(positive = positive, P2 = P2)))
-```
-Let's plot the model:
-```{r}
-with(clean, plot(positive, New.Positive, pch=16, xlab = "Positive Counts", ylab = "Rate of Change of Positive", cex.lab = 1.3, col = "blue"))
-with(clean,lines(positive, predictedcounts, col = "darkgreen", lwd = 3))
-IowaPercent <- round(M/IowaPop*100, digits = 2)
-```
-So, we have a quadratic model that looks like $\frac{dP}{dt}$ = `r quadratic$coefficients[1]`$P^2$ + `r quadratic$coefficients[2]`$P$ = `r r`$P(1-P/$ `r Mprint`$)$. This is looking pretty good. In particular, because $M=$ `r Mprint`, we can estimate that `r IowaPercent` of Iowa's population will become infected.  We would like to see what that looks like for the original data. When R performs logistic modeling, it usually has binomial data and thus expects numbers that are between zero and one. We will use our estimate of $M$ to create postitive counts that are a percentage of $M$. 
-```{r, echo = FALSE}
-clean$binomial <- clean$positive/M
-mylogit <- glm(binomial ~ date, data = clean, family = "binomial")
-#ggplot(clean, aes(x=date, y=binomial)) + 
- # geom_point() + 
-  #stat_smooth(method="glm", method.args=list(family="binomial"))
-ypredict <- predict(mylogit, list(date = clean$date), type = "response")*M
-qplot(date, positive, data = clean) +
-  #stat_smooth(method = "lm", col = "green") +
-  geom_line(aes(y = ypredict, col = "model"), size = 1.25) 
-```
-Okay, that looks quite good. What will it predict for the next 28 days?
-```{r, echo=FALSE}
-ndate <-seq(as.Date("2020-03-09"),as.Date(day + 14),by = 1)
-#play <- clean %>% filter(row_number() >= (n() - 7))
-play <- clean
-ypredict2 <- predict(mylogit, list(date =ndate), type = "response")*M
-df <- data.frame(date = ndate, model = ypredict2)
-df <- merge(df, play, all = TRUE)
-predict14 <- format(round(ypredict2[length(ypredict2)], digits = 0), scientific = FALSE)
-
-ndate <-seq(as.Date("2020-03-09"),as.Date(day + 28),by = 1)
-ypredict3 <- predict(mylogit, list(date =ndate), type = "response")*M
-df2 <- data.frame(date = ndate, model = ypredict3)
-df2 <- merge(df2, play, all = TRUE)
-qplot(date, model, ylab = "Positive Cases", data = df2, geom = "smooth") + 
-  #geom_line(size = 1.25, color = "red") +
-  geom_point(aes(y=positive), shape = 8) + theme(legend.position = 'right')
-```
-This predicts that in 14 days, Iowa will have `r predict14` infected people.
 
 ## New Positives
+
+At the beginning, we were modeling the new positive data as an exponential curve. As of about the middle of May we changed to use the logistic growth curve from the Logistic Model to predict new positive tests.
 ```{r, echo = FALSE}
-model4 <- lm(log(New.Positive) ~ date, data = clean)
-pred <- predict(model4, newdata = data.frame(date =clean$date))
-np_doubling_time <- log(2)/model4$coefficients[2]
+npPredict <- diff(ypredict2,1,1)
+templength <- length(clean$New.Positive)
+npPredict <- npPredict[1:templength]
 qplot(date, New.Positive, data = clean, geom = c("point", "smooth")) +
   #stat_smooth(method = "lm", col = "green") +
-  geom_line(aes(y = exp(pred), col = "model")) + 
+  geom_line(aes(y = npPredict, col = "model")) + 
   geom_line(aes(y=np_7day, col = "7 day average"), size = 1.25)
   
 ```
-For the model $new positives = e^{k date}$, $k=$ `r model4$coefficients[2]`. 
-Estimated time for new positives to double is `r np_doubling_time` days.
+
+As of about the middle of May, it becomes clear that the new positive data is not exponential. Which is really good news. This is when this model gets downgraded to the Alternative Modeling section.
+
+# Accuracy
+As with any test, there will be false positives (people who test positive, but aren't infected) and false negatives (people who test negative, but are infected). On May 1, it was reported by the Governor's office: 
+
+"Governor Reynolds says the State Hygienic Lab has validated the machines used as part of the Test Iowa program.  “I’m pleased to announce that the State Hygienic Lab completed the Test Iowa validation process yesterday, achieving high ratings of 95% accuracy for determining positives and 99.7% accuracy for determining negatives.”"
+
+This is a bit hard to interpret, but I am going to assume that it means that the false positive rate is 0.3% and the false negative rate is 5%. This agrees with earlier reports of testing where the tests used to show that you are currently infected have pretty low false positive rates and higher false negative rates because it comes back positive if it finds the virus. A false negative would be that you have the virus, but the test can't find it which isn't out of the range of possibility.  So, let's go back to our data and calculate the numbers: 
+```{r}
+accuracy <- clean %>% 
+    mutate(
+    tp = .997*positive, 
+    fp = .003*positive, 
+    tn = 0.95*negative, 
+    fn = 0.05*negative) %>%
+    mutate( pos = round(tp+fn, digits = 0),
+            neg = round(tn+fp, digits = 0))
+lastrow = length(accuracy)
+```
+Today, the state reported `r accuracy[lastrow, 3]` total positive and `r accuracy[lastrow, 9]` total negative. Due to test inaccuracy, these numbers could be as much as `r format(accuracy[lastrow, 26], scientific = F)` positive and `r format(accuracy[lastrow, 27], scientific = F)` negative.
 
 # Store Predictions
 This section stores predictions.
-```{r}
+```{r, echo=FALSE}
+predictions <- as.data.frame(read.csv("Predictions.csv"))
+predictions <- predictions[,-1]
+predictions$date <- as.Date(predictions$date)
 list <- data.frame(date = day, 
           PositiveDoubling = positive_doubling_time, 
           latePositiveDoubling = positive_doubling_time2, 
@@ -223,7 +295,9 @@ list <- data.frame(date = day,
           LogisticM = M, 
           FourteenDayPrediction = predict14
           )
-if(predictions[nrow(predictions),1]!= day){
+list$date <- as.Date(list$date)
+rownames(list) <- c()
+if(as.character(predictions[nrow(predictions),1])!= day){
   predictions = rbind(predictions, list)
 }
 
@@ -251,5 +325,19 @@ model <- lm(deaths~date, data=cdeaths)
 #model$coefficients
 ```
 
+## New Positives
+```{r, echo = FALSE}
+model4 <- lm(log(New.Positive) ~ date, data = clean)
+pred <- predict(model4, newdata = data.frame(date =clean$date))
+np_doubling_time <- log(2)/model4$coefficients[2]
+qplot(date, New.Positive, data = clean, geom = c("point", "smooth")) +
+  #stat_smooth(method = "lm", col = "green") +
+  geom_line(aes(y = exp(pred), col = "model")) + 
+  geom_line(aes(y=np_7day, col = "7 day average"), size = 1.25)
+  
+```
 
+As of about the middle of May, it becomes clear that the new positive data is not exponential. Which is really good news. This is when this model gets downgraded to the Alternative Modeling section.
+For the model $new positives = e^{k date}$, $k=$ `r model4$coefficients[2]`. 
+Estimated time for new positives to double is `r np_doubling_time` days.
 
