@@ -17,20 +17,33 @@ covid19 <- read.csv("covid19.csv", stringsAsFactors = FALSE)
 covid19$date <- mdy(covid19$date)
 clearn <- !is.na(covid19$positive)
 clean <- covid19[clearn,]
+calculate <- with(data = clean,data.frame(
+  New.Positive = diff(positive),
+  New.Negative = diff(negative),
+  Total.Daily.Tests = diff(Total.Tested),
+  New.Deaths = diff(deaths)
+  ))
+calculate <- rbind(c(NA,NA,NA,NA), calculate)
+calculate <- cbind(date = clean$date, calculate)
 cdeaths <- covid19[!is.na(covid19$deaths),]
-lastrow <- nrow(clean)
 clean <- clean %>% mutate(
-  #New.Positive[lastrow] = positive[lastrow] - positive[lastrow-1]) 
   negative = Total.Tested - positive,
   Percent.Pos = positive/Total.Tested*100,
-  np_7day = rollmean(New.Positive, k=7, fill = NA)
+  np_7day = rollmean(New.Positive, k=7, fill = NA),
+  New.Positive = calculate$New.Positive,
+  New.Negative = calculate$New.Negative,
+  Total.Daily.Tests = calculate$Total.Daily.Tests,
+  New.Deaths = calculate$New.Deaths,
+  New.Percent.Positive = New.Positive/Total.Daily.Tests
 )
+lastrow <- nrow(clean)
+
 ```
 ```{r, echo = FALSE}
-today <- cdeaths[nrow(cdeaths),]
+today <- clean[nrow(clean),]
 day <- today$date
 new_pos <- today$New.Positive
-percent_pos <- today$New.Percent.Positive
+percent_pos <- round(today$New.Percent.Positive*100, digits = 1)
 percent_hospital <- today$Percent.Hospitalized
 percent_ICU <- round(today$ICU/today$hospitalized*100, digits = 1)
 sick <- today$Still.Sick
@@ -38,7 +51,7 @@ IowaPop <- 3.155*10^6
 ```
 # Summary `r day`
 
-Today we had `r new_pos` new positive tests which is `r percent_pos` of the total tests recorded in the last 24 hours. In Iowa there are `r sick` people still sick with COVID-19 and `r percent_hospital` of those people are hospitalized. Of those who are hospitalized, `r percent_ICU`% are in the ICU. Finally, from the logistic growth model which looks good, but is super sensitive to data, we predict that in 14 days, Iowa will have `r predict14` infected people which is `r IowaPercent`% of the population.
+Today we had `r new_pos` new positive tests which is `r percent_pos`% of the total tests recorded in the last 24 hours. In Iowa there are `r sick` people still sick with COVID-19 and `r percent_hospital` of those people are hospitalized. Of those who are hospitalized, `r percent_ICU`% are in the ICU. Finally, from the logistic growth model which looks good, but is super sensitive to data, we predict that in 14 days, Iowa will have `r predict14` infected people which is `r IowaPercent`% of the population.
 
 ## View Data
 So, it turns out to be very difficult to find past data in the State of Iowa since they re-publish everything daily.  Here are the last 6 days of data if you are interested:
@@ -78,7 +91,10 @@ data$binomial <- data$positive/M
 mylogit <- glm(binomial ~ date, data = data, family = "binomial")
 ypredict <- predict(mylogit, list(date = data$date), type = "response")*M
 }
-ypredict <- logisticGrowthy(clean, M)
+clean$binomial <- clean$positive/M
+mylogit <- glm(binomial ~ date, data = clean, family = "binomial")
+ypredict <- predict(mylogit, list(date = clean$date), type = "response")*M
+#ypredict <- logisticGrowthy(clean, M)
 qplot(date, positive, data = clean) +
   #stat_smooth(method = "lm", col = "green") +
   geom_line(aes(y = ypredict, col = "model"), size = 1.25) 
@@ -101,6 +117,7 @@ qplot(date, model, ylab = "Positive Cases", data = df2, geom = "smooth") +
   #geom_line(size = 1.25, color = "red") +
   geom_point(aes(y=positive), shape = 8) + theme(legend.position = 'right')
 ```
+
 This predicts that in 14 days, Iowa will have `r predict14` infected people.
 
 ## SIR Model
@@ -137,6 +154,8 @@ qplot(day, data = SIR) +
     stat_smooth( aes( y = R), color = "green", method = "loess") +
     theme(legend.position = "right")
 ```
+(Note 5/30/2020) As of about March 15 this no longer looks like the SIR model that you would expect. We have this unexpected linear growth in $R$ where we would expect things to be more concave down at this point. Not good.
+
 Next, let's see about coefficients:
 ```{r}
 dRmodel <- lm(dR ~ 0+I, data = SIR)
@@ -148,6 +167,34 @@ r1 <- dImodel$coefficients[1]
 Now we plug this into the DE solver.
 ```{r}
 require(deSolve)
+state <- c(S = as.numeric(1-clean$positive[25]/M), 
+           I = as.numeric(clean$Still.Sick[25]/M), 
+           R = as.numeric(clean$Recovered[25]/M))
+times <- seq(0, nrow(clean)-24, by = 1)
+parameters <- c(r1=as.numeric(r1*M),
+                r2=as.numeric(r2))
+
+# R function to calculate the value of the derivatives at each time value
+    # Use the names of the variables as defined in the vectors above
+SIR <- function(time, state, parameters){
+      with(as.list(c(state, parameters)), {
+        dS = r1*S*I
+        dR = r2*I
+        dI = -r1*S*I -r2*I
+        return(list(c(dS, dI, dR)))
+      })
+}
+
+## Integration with 'ode'
+out <- ode(y = state, times = times, func = SIR, parms = parameters, method = rk4)
+    
+    ## Ploting
+    out.df = as.data.frame(out) # required by ggplot: data object must be a data frame
+    require(reshape2)
+    out.m = melt(out.df, id.vars='time') # this makes plotting easier by puting all variables in a single column
+    
+    p <- ggplot(out.m, aes(time, value, color = variable)) + geom_point()
+    print(p)
 ```
 
 ### Exponential Model
@@ -267,12 +314,13 @@ As with any test, there will be false positives (people who test positive, but a
 
 This is a bit hard to interpret, but I am going to assume that it means that the false positive rate is 0.3% and the false negative rate is 5%. This agrees with earlier reports of testing where the tests used to show that you are currently infected have pretty low false positive rates and higher false negative rates because it comes back positive if it finds the virus. A false negative would be that you have the virus, but the test can't find it which isn't out of the range of possibility.  So, let's go back to our data and calculate the numbers: 
 ```{r}
+temp <- 1/(.997*.95 - (1-.995)*(1-.95))
 accuracy <- clean %>% 
     mutate(
-    tp = .997*positive, 
-    fp = .003*positive, 
-    tn = 0.95*negative, 
-    fn = 0.05*negative) %>%
+    tp = .95*positive/temp, 
+    fp = (1-.993)/temp*positive, 
+    tn = 0.993/temp*negative, 
+    fn = (1-.95)/temp*negative) %>%
     mutate( pos = round(tp+fn, digits = 0),
             neg = round(tn+fp, digits = 0))
 lastrow = length(accuracy)
@@ -302,6 +350,7 @@ if(as.character(predictions[nrow(predictions),1])!= day){
 }
 
 write.csv(predictions, "Predictions.csv")
+write.csv(clean, "CleanData.csv")
 ```
 
 
