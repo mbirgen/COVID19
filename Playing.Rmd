@@ -9,11 +9,13 @@ suppressPackageStartupMessages( require(dplyr))
 suppressPackageStartupMessages( require(lubridate))
 suppressPackageStartupMessages( require(ggplot2))
 suppressPackageStartupMessages( require(zoo))
+suppressPackageStartupMessages( require(gsheet))
 ```
 
 Load data
 ```{r load, echo = FALSE}
 covid19 <- read.csv("covid19.csv", stringsAsFactors = FALSE)
+gcovid19 <- gsheet2tbl("https://docs.google.com/spreadsheets/d/1uUqiWvvZvXtYBeQ1IASfwHEP45q03y9Pk8vjYTMAxO8")
 covid19$date <- mdy(covid19$date)
 clearn <- !is.na(covid19$positive)
 clean <- covid19[clearn,]
