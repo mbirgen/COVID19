@@ -16,6 +16,8 @@ Load data
 ```{r load, echo = FALSE}
 covid19 <- read.csv("covid19.csv", stringsAsFactors = FALSE)
 gcovid19 <- gsheet2tbl("https://docs.google.com/spreadsheets/d/1uUqiWvvZvXtYBeQ1IASfwHEP45q03y9Pk8vjYTMAxO8")
+# covid19 <- gcovid19
+names(covid19)[names(covid19) == "ï..date"] <- 'date'
 covid19$date <- mdy(covid19$date)
 clearn <- !is.na(covid19$positive)
 clean <- covid19[clearn,]
@@ -196,7 +198,7 @@ out <- ode(y = state, times = times, func = SIR, parms = parameters, method = rk
     out.m = melt(out.df, id.vars='time') # this makes plotting easier by puting all variables in a single column
     
     p <- ggplot(out.m, aes(time, value, color = variable)) + geom_point()
-    print(p)
+    #print(p)
 ```
 
 ### Exponential Model
