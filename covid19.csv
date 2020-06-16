@@ -1,4 +1,4 @@
-date,Total Tested,positive,Recovered,deaths,hospitalized,new hospital,ICU,negative,Percent Pos,discharged,never_hospitalized,New Positive,New Negative,New Percent Positive,Total Daily Tests,Still Sick,Percent Hospitalized,New Deaths,Bremer Positive,Bremer Recovered,Bremer Deaths,Bremer Still Infected
+﻿date,Total Tested,positive,Recovered,deaths,hospitalized,new hospital,ICU,negative,Percent Pos,discharged,never_hospitalized,New Positive,New Negative,New Percent Positive,Total Daily Tests,Still Sick,Percent Hospitalized,New Deaths,Bremer Positive,Bremer Recovered,Bremer Deaths,Bremer Still Infected
 3/8/2020,,3,,0,,,,NA,NA,,,,,,,,,,,,,
 3/9/2020,,5,,0,,,,NA,NA,,,2,,,,,,0,,,,
 3/10/2020,27,13,,0,,,,14,48%,,,8,,,,,,0,,,,
@@ -85,3 +85,9 @@ date,Total Tested,positive,Recovered,deaths,hospitalized,new hospital,ICU,negati
 6/8/2020,192950,21919,12844,606,265,,85,171031,11%,,,284,4727,6%,5011,8469,3%,2,74,61,6,7
 6/9/2020,197340,22179,13244,622,255,,82,175161,11%,,,260,4130,6%,4390,8313,3%,16,74,63,6,5
 6/10/2020,202594,22454,13532,629,245,,73,180140,11%,,,275,4979,5%,5254,8293,3%,7,74,63,6,5
+6/11/2020,207057,22785,13806,638,242,,75,184272,11%,,,331,4132,7%,4463,8341,3%,9,74,64,6,4
+6/12/2020,212827,23166,14058,641,225,,81,189661,11%,,,381,5389,7%,5770,8467,3%,3,74,65,6,3
+6/13/2020,218960,23551,14301,650,200,,76,195409,11%,,,385,5748,6%,6133,8600,2%,9,74,65,6,3
+6/14/2020,224663,23879,14359,651,203,77,77,200784,11%,,,328,5375,6%,5703,8869,2%,1,74,65,6,3
+6/15/2020,227409,24041,14431,653,197,,71,203368,11%,,,162,2584,6%,2746,8957,2%,2,74,66,6,2
+6/16/2020,230263,24161,14798,661,193,,71,206102,10%,,,120,2734,4%,2854,8702,2%,8,74,66,6,2
