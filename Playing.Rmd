@@ -40,8 +40,11 @@ clean <- clean %>% mutate(
   New.Deaths = calculate$New.Deaths,
   New.Percent.Positive = New.Positive/Total.Daily.Tests
 )
+clean$wktot <- sapply(clean$date,function(x)sum(clean[difftime(clean$date,x,,"days") %in% 0:-6,]$New.Positive))
 lastrow <- nrow(clean)
-
+clean <- clean %>% mutate(
+  nd_7day = rollmean(deaths, k=7, fill = NA,),
+  pp_7day = rollmean(New.Percent.Positive, k=7, fill = NA))
 ```
 ```{r, echo = FALSE}
 today <- clean[nrow(clean),]
@@ -64,6 +67,15 @@ tail(clean)
 ```
 
 # Data Exploration
+
+## Known Active Cases
+This is a graph of the known active cases in Iowa. These people have tested positive, but have not moved on to a stage where they are not infectious. I say it that way because we know that a lot of patients with mild and moderate COVID-19 are very sick even after they are no longer infectious.
+
+```{r, echo=FALSE}
+qplot(date, Still.Sick, data = clean, geom = c("point", "smooth")) +
+  ggtitle("Known Active COVID-19 Cases in Iowa")
+```
+Sigh. On June 30 IDPH decided to count anyone who was still not listed as recovered after 28 days as recovered. So, let's go back into the historic data and try to add that expectation to past recoverd data. 
 
 ## Positive Tests
 
