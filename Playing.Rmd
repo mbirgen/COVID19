@@ -15,7 +15,7 @@ suppressPackageStartupMessages( require(gsheet))
 Load data
 ```{r load, echo = FALSE}
 covid19 <- read.csv("covid19.csv", stringsAsFactors = FALSE)
-gcovid19 <- gsheet2tbl("https://docs.google.com/spreadsheets/d/1uUqiWvvZvXtYBeQ1IASfwHEP45q03y9Pk8vjYTMAxO8")
+county <- read.csv("censusCounties.csv", stringsAsFactors = FALSE)
 # covid19 <- gcovid19
 names(covid19)[names(covid19) == "ï..date"] <- 'date'
 covid19$date <- mdy(covid19$date)
@@ -33,13 +33,18 @@ cdeaths <- covid19[!is.na(covid19$deaths),]
 clean <- clean %>% mutate(
   negative = Total.Tested - positive,
   Percent.Pos = positive/Total.Tested*100,
-  np_7day = rollmean(New.Positive, k=7, fill = NA),
+  np_7day = rollmean(New.Positive, k=7, align = "right", fill = NA),
   New.Positive = calculate$New.Positive,
   New.Negative = calculate$New.Negative,
   Total.Daily.Tests = calculate$Total.Daily.Tests,
   New.Deaths = calculate$New.Deaths,
   New.Percent.Positive = New.Positive/Total.Daily.Tests
 )
+clean <- clean %>% mutate(
+  Week.Positivity = rollapply(New.Positive, 7, FUN=sum, fill = NA),
+  Week.Tests = rollapply(Total.Daily.Tests, 7, FUN=sum, fill = NA),
+  Week.Positivity.Rate = Week.Positivity/Week.Tests
+  )
 clean$wktot <- sapply(clean$date,function(x)sum(clean[difftime(clean$date,x,,"days") %in% 0:-6,]$New.Positive))
 lastrow <- nrow(clean)
 clean <- clean %>% mutate(
@@ -51,14 +56,17 @@ today <- clean[nrow(clean),]
 day <- today$date
 new_pos <- today$New.Positive
 percent_pos <- round(today$New.Percent.Positive*100, digits = 1)
+percent_pos7 <- round(clean[nrow(clean)-4,16]*100, digits = 1)
+hospital <- today$hospitalized
 percent_hospital <- today$Percent.Hospitalized
+ICU <- today$ICU
 percent_ICU <- round(today$ICU/today$hospitalized*100, digits = 1)
 sick <- today$Still.Sick
 IowaPop <- 3.155*10^6
 ```
-# Summary `r day`
+# Iowa COVID-19 Summary `r day`
 
-Today we had `r new_pos` new positive tests which is `r percent_pos`% of the total tests recorded in the last 24 hours. In Iowa there are `r sick` people still sick with COVID-19 and `r percent_hospital` of those people are hospitalized. Of those who are hospitalized, `r percent_ICU`% are in the ICU. Finally, from the logistic growth model which looks good, but is super sensitive to data, we predict that in 14 days, Iowa will have `r predict14` infected people which is `r IowaPercent`% of the population.
+Today we had `r new_pos` new positive tests which is `r percent_pos`% (`r percent_pos7`% in the last week) of the tests recorded in the last 24 hours. There are `r sick` people actively sick and `r percent_hospital` (`r hospital`) are hospitalized. `r percent_ICU`% (`r ICU`) of those hospitalized are in the ICU. 
 
 ## View Data
 So, it turns out to be very difficult to find past data in the State of Iowa since they re-publish everything daily.  Here are the last 6 days of data if you are interested:
@@ -72,10 +80,56 @@ tail(clean)
 This is a graph of the known active cases in Iowa. These people have tested positive, but have not moved on to a stage where they are not infectious. I say it that way because we know that a lot of patients with mild and moderate COVID-19 are very sick even after they are no longer infectious.
 
 ```{r, echo=FALSE}
-qplot(date, Still.Sick, data = clean, geom = c("point", "smooth")) +
+pactive <- qplot(date, Still.Sick, data = clean[-(1:23),], geom = c("point", "smooth")) +
   ggtitle("Known Active COVID-19 Cases in Iowa")
+png("pactive.png")
+pactive
+dev.off()
+pactive
 ```
-Sigh. On June 30 IDPH decided to count anyone who was still not listed as recovered after 28 days as recovered. So, let's go back into the historic data and try to add that expectation to past recoverd data. 
+Sigh. On June 30 IDPH decided to count anyone who was still not listed as recovered after 28 days as recovered. So, let's go back into the historic data and try to add that expectation to past recoverd data. Fortunately it is possible to download the data from the website https://coronavirus.iowa.gov/#CurrentStatus 
+
+## Percent Positive Active Cases
+```{r,echo=False}
+
+ppositive <-qplot(date, New.Percent.Positive, data = clean[-(1:7),], geom = c("point", "smooth")) + ylab("Fraction Positive") +
+ggtitle("Fraction of Positive COVID-19 Tests in Iowa")
+png("ppositive.png")
+ppositive
+dev.off()
+ppositive
+
+p7positive <-qplot(date, Week.Positivity.Rate, data = clean[-(1:20),], geom = c("point", "smooth")) + ylab("Fraction Positive") +
+ggtitle("7 day average of Fraction of Positive COVID-19 Tests in Iowa")
+png("p7positive.png")
+
+dev.off()
+p7positive
+```
+
+
+## Bremer County
+I started recording daily data on Bremer county on May 29, 2020. There will be problems with the recovered data since I have yet to get tables of data for the county and the definition of recovered changed on June 30. Thus, the following graph omits that data.
+```{r, echo=FALSE}
+pBremer <-qplot(date, Bremer.SS, data = clean[-(1:71),], geom = c("point", "smooth")) +
+  ggtitle("Known Active COVID-19 Cases in Bremer County")
+pButler <-qplot(date, Butler.SS, data = clean[-(1:116),], geom = c("point", "smooth")) +
+  ggtitle("Known Active COVID-19 Cases in Butler County")
+png("pButler.png")
+pButler
+dev.off()
+pButler
+pBlackHawk <-qplot(date, BlackHawk.SS, data = clean[-(1:116),], geom = c("point", "smooth")) +
+  ggtitle("Known Active COVID-19 Cases in Black Hawk County")
+png("pBlackHawk.png")
+pBlackHawk
+dev.off()
+
+png("pBremer.png")
+pBremer
+dev.off()
+pBremer
+```
 
 ## Positive Tests
 
