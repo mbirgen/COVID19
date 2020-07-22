@@ -111,16 +111,19 @@ p7positive
 ## Bremer County
 I started recording daily data on Bremer county on May 29, 2020. There will be problems with the recovered data since I have yet to get tables of data for the county and the definition of recovered changed on June 30. Thus, the following graph omits that data.
 ```{r, echo=FALSE}
-pBremer <-qplot(date, Bremer.SS, data = clean[-(1:71),], geom = c("point", "smooth")) +
-  ggtitle("Known Active COVID-19 Cases in Bremer County")
-pButler <-qplot(date, Butler.SS, data = clean[-(1:116),], geom = c("point", "smooth")) +
-  ggtitle("Known Active COVID-19 Cases in Butler County")
+Bremer_Population <- county[county$COUNTY=="Bremer",][,3]
+Butler_Population <- county[county$STATE=="Iowa"&county$COUNTY=="Butler",][,3]
+BlackHawk_Population <- county[county$STATE=="Iowa"&county$COUNTY=="Black Hawk",][,3]
+pBremer <-qplot(date, Bremer.SS/Bremer_Population*100000, data = clean[-(1:71),], geom = c("point", "smooth")) +
+  ggtitle("Known Active COVID-19 Cases in Bremer County Per 100,000 People")
+pButler <-qplot(date, Butler.SS/Butler_Population*100000, data = clean[-(1:116),], geom = c("point", "smooth")) +
+  ggtitle("Known Active COVID-19 Cases in Butler County Per 100,000 People")
 png("pButler.png")
 pButler
 dev.off()
 pButler
-pBlackHawk <-qplot(date, BlackHawk.SS, data = clean[-(1:116),], geom = c("point", "smooth")) +
-  ggtitle("Known Active COVID-19 Cases in Black Hawk County")
+pBlackHawk <-qplot(date, BlackHawk.SS/BlackHawk_Population*100000, data = clean[-(1:116),], geom = c("point", "smooth")) +
+  ggtitle("Known Active COVID-19 Cases in Black Hawk County Per 100,000 People")
 png("pBlackHawk.png")
 pBlackHawk
 dev.off()
