@@ -56,13 +56,51 @@ today <- clean[nrow(clean),]
 day <- today$date
 new_pos <- today$New.Positive
 percent_pos <- round(today$New.Percent.Positive*100, digits = 1)
-percent_pos7 <- round(clean[nrow(clean)-4,16]*100, digits = 1)
+percent_pos7 <- round(clean$Week.Positivity.Rate[nrow(clean)-4]*100, digits = 1)
 hospital <- today$hospitalized
 percent_hospital <- today$Percent.Hospitalized
 ICU <- today$ICU
 percent_ICU <- round(today$ICU/today$hospitalized*100, digits = 1)
-sick <- today$Still.Sick
-IowaPop <- 3.155*10^6
+sick <- format(today$Still.Sick, scientific = FALSE)
+IowaPop <- 3155070
+
+#########################################
+####### This section downloads the hospitalization data per county. It was added July 25, 2020.
+#########################################
+require(pdftools)
+require(tidyverse)
+
+######## The file name is based on the date.
+mydate <- Sys.Date() -2  # Get today's date minus 2 days
+myprettydate <- format(mydate, format = "%d%b%Y")
+
+# pdffilename <- "https://www.homelandsecurity.iowa.gov/documents/covid-site/IA_C19_23JUL2020.pdf"
+pdffilename <- paste("https://www.homelandsecurity.iowa.gov/documents/covid-site/IA_C19_", 
+                     myprettydate, ".pdf", sep="")
+download.file(pdffilename, 'hosp_by_county.pdf', mode="wb")
+
+####### The next part turns the pdf into a data table
+
+hosp_by_county <- pdf_text("hosp_by_county.pdf") %>%
+    readr::read_lines() %>% 
+    str_squish()
+hosp_by_county <- hosp_by_county[-(1:4)]
+hosp_by_county <- hosp_by_county[-(34:36)]
+hosp_by_county <-hosp_by_county %>%
+    strsplit("(?= [A-Za-z])(?<=[0-9])|(?= [0-9])(?<=[A-Za-z])", perl=TRUE)
+    
+hosp_by_county_df <- plyr::ldply(hosp_by_county)
+temp1 <- hosp_by_county_df[,1:2]
+temp2 <- hosp_by_county_df[,3:4]
+temp3 <- hosp_by_county_df[,5:6]
+colnames(temp2) <- names(temp1)
+colnames(temp3) <- names(temp1)
+hosp_by_county <- rbind(temp1, temp2, temp3)
+colnames(hosp_by_county) <- c("County", "Hospitalized")
+hosp_by_county <-hosp_by_county %>%
+    mutate(Hospitalized = as.numeric(Hospitalized))
+rm(temp1, temp2, temp3, hosp_by_county_df)
+rownames(hosp_by_county) <- hosp_by_county[,1]
 ```
 # Iowa COVID-19 Summary `r day`
 
@@ -111,19 +149,36 @@ p7positive
 ## Bremer County
 I started recording daily data on Bremer county on May 29, 2020. There will be problems with the recovered data since I have yet to get tables of data for the county and the definition of recovered changed on June 30. Thus, the following graph omits that data.
 ```{r, echo=FALSE}
+State_Average_Active <- today$Still.Sick/IowaPop*100000
 Bremer_Population <- county[county$COUNTY=="Bremer",][,3]
 Butler_Population <- county[county$STATE=="Iowa"&county$COUNTY=="Butler",][,3]
 BlackHawk_Population <- county[county$STATE=="Iowa"&county$COUNTY=="Black Hawk",][,3]
-pBremer <-qplot(date, Bremer.SS/Bremer_Population*100000, data = clean[-(1:71),], geom = c("point", "smooth")) +
-  ggtitle("Known Active COVID-19 Cases in Bremer County Per 100,000 People")
-pButler <-qplot(date, Butler.SS/Butler_Population*100000, data = clean[-(1:116),], geom = c("point", "smooth")) +
-  ggtitle("Known Active COVID-19 Cases in Butler County Per 100,000 People")
+pBremer <-qplot(date,
+                #Bremer.SS/Bremer_Population*100000,
+                Bremer.SS,
+                data = clean[-(1:71),], geom = c("point", "smooth")) +
+  ggtitle(
+    #"Known Active COVID-19 Cases in Bremer County Per 100,000 People")
+    "Known Active COVID-19 Cases in Bremer County")
+#+  geom_hline(aes(yintercept=State_Average_Active)
+pButler <-qplot(date,
+                #Butler.SS/Butler_Population*100000,
+                Butler.SS,
+                data = clean[-(1:116),], geom = c("point", "smooth")) +
+  ggtitle("Known Active COVID-19 Cases in Butler County")
+#ggtitle("Known Active COVID-19 Cases in Butler County Per 100,000 People")
+#+  geom_hline(aes(yintercept=State_Average_Active)
 png("pButler.png")
 pButler
 dev.off()
 pButler
-pBlackHawk <-qplot(date, BlackHawk.SS/BlackHawk_Population*100000, data = clean[-(1:116),], geom = c("point", "smooth")) +
-  ggtitle("Known Active COVID-19 Cases in Black Hawk County Per 100,000 People")
+pBlackHawk <-qplot(date,
+              BlackHawk.SS, 
+              #BlackHawk.SS/BlackHawk_Population*100000,
+              data = clean[-(1:116),], geom = c("point", "smooth")) +
+  ggtitle("Known Active COVID-19 Cases in Black Hawk County")
+#ggtitle("Known Active COVID-19 Cases in Black Hawk County Per 100,000 People")
+#+  geom_hline(aes(yintercept=State_Average_Active)
 png("pBlackHawk.png")
 pBlackHawk
 dev.off()
@@ -133,6 +188,9 @@ pBremer
 dev.off()
 pBremer
 ```
+There are `r clean$Bremer.SS[nrow(clean)]` active cases and `r hosp_by_county["Bremer",][[2]]` hospitalized in Bremer County today.
+
+`r hosp_by_county[c("Bremer", "Butler", "Black Hawk"),][2]`
 
 ## Positive Tests
 
@@ -421,7 +479,17 @@ rownames(list) <- c()
 if(as.character(predictions[nrow(predictions),1])!= day){
   predictions = rbind(predictions, list)
 }
+hospital <- as.data.frame(read.csv("CountyHospitilizations.csv"))
 
+h_county <-  t(hosp_by_county[,2])
+
+colnames(h_county) <-  hosp_by_county[,1]
+h_county <- cbind(date = c(as.character(day)), h_county)
+colnames(h_county) <- colnames(hospital)
+rownames(h_county) <- as.character(day)
+rbind(hospital, h_county)
+
+write.csv(hospital, "CountyHospitilizations.csv")
 write.csv(predictions, "Predictions.csv")
 write.csv(clean, "CleanData.csv")
 ```
