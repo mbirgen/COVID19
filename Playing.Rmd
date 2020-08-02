@@ -72,13 +72,18 @@ require(tidyverse)
 
 ######## The file name is based on the date.
 mydate <- Sys.Date() -2  # Get today's date minus 2 days
+# myprettydate <- format(mydate, format = "%d%B%Y")
 myprettydate <- format(mydate, format = "%d%b%Y")
-
 # pdffilename <- "https://www.homelandsecurity.iowa.gov/documents/covid-site/IA_C19_23JUL2020.pdf"
-pdffilename <- paste("https://www.homelandsecurity.iowa.gov/documents/covid-site/IA_C19_", 
+# pdffilename <- paste("https://www.homelandsecurity.iowa.gov/documents/covid-site/IA_C19_",
+#                      myprettydate, ".pdf", sep="")
+# paste("https://www.homelandsecurity.iowa.gov/documents/covid-site/IA_C19_", 
+#                      myprettydate, ".pdf", sep="")
+pdffilename <- paste("C:\\Users\\mariah.birgen\\Downloads\\IA_C19_", 
                      myprettydate, ".pdf", sep="")
-download.file(pdffilename, 'hosp_by_county.pdf', mode="wb")
 
+# download.file(pdffilename, 'hosp_by_county.pdf', mode="wb")
+file.copy(pdffilename, 'hosp_by_county.pdf')
 ####### The next part turns the pdf into a data table
 
 hosp_by_county <- pdf_text("hosp_by_county.pdf") %>%
@@ -154,13 +159,13 @@ Bremer_Population <- county[county$COUNTY=="Bremer",][,3]
 Butler_Population <- county[county$STATE=="Iowa"&county$COUNTY=="Butler",][,3]
 BlackHawk_Population <- county[county$STATE=="Iowa"&county$COUNTY=="Black Hawk",][,3]
 pBremer <-qplot(date,
-                #Bremer.SS/Bremer_Population*100000,
+                # Bremer.SS/Bremer_Population*100000,
                 Bremer.SS,
                 data = clean[-(1:71),], geom = c("point", "smooth")) +
   ggtitle(
-    #"Known Active COVID-19 Cases in Bremer County Per 100,000 People")
+    # "Known Active COVID-19 Cases in Bremer County Per 100,000 People")
     "Known Active COVID-19 Cases in Bremer County")
-#+  geom_hline(aes(yintercept=State_Average_Active)
+# +  geom_hline(aes(yintercept=State_Average_Active)
 pButler <-qplot(date,
                 #Butler.SS/Butler_Population*100000,
                 Butler.SS,
