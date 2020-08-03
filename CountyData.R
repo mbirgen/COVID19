@@ -1,14 +1,16 @@
 mydate <- Sys.Date()
 filename <- "C:\\Users\\mariah.birgen\\Downloads\\Summary.csv"
-CountyData <- read.csv(filename)
+CountyData <- read.csv(filename, 
+                       stringsAsFactors = FALSE)
+
 CountyData <- as.data.frame(CountyData) %>%
     arrange(EventResidentCounty) %>%
     mutate(positivity = Individuals.Positive/Individuals.Tested,
            date = as.Date(mydate))
 rownames(CountyData) <- CountyData[,1]
-temp <-c( EventResidentCounty = NA,
-          colSums(CountyData[,2:5]), 
-          positivity = NA, 
+temp <-c( EventResidentCounty = "Totals",
+          colSums(CountyData[,2:5]),
+          positivity = NA,
           date = as.character(mydate))
 CountyData <- rbind(CountyData, Total = temp)
 # CountyData <-cbind(date = as.Date(mydate), CountyData)
@@ -20,15 +22,17 @@ write.csv(CountyData, file = 'CountyData/CountyData.csv', append = TRUE)
 d_county <- t(CountyData[,-1])
 county_names <- CountyData[,1]
 colnames(d_county) <- CountyData[,1]
+# d_county <- as.data.frame(d_county)%>%
+#     mutate(Total = Reduce(`+`, .))
 d_county <- cbind(date =as.character(mydate),d_county)
 
-Tested <- read.csv( "CountyTests.csv", stringsAsFactors=FALSE)
+Tested <- read.csv( "CountyData/CountyTests.csv", stringsAsFactors=FALSE)
 Tested <- Tested[,-1]
-Positive <- read.csv( "CountyPositive.csv", stringsAsFactors=FALSE)
+Positive <- read.csv( "CountyData/CountyPositive.csv", stringsAsFactors=FALSE)
 Positive <- Positive[,-1]
-Recovered <- read.csv( "CountyRecovered.csv", stringsAsFactors=FALSE)
+Recovered <- read.csv( "CountyData/CountyRecovered.csv", stringsAsFactors=FALSE)
 Recovered <- Recovered[,-1]
-Deaths <- read.csv( "CountyDeaths.csv", stringsAsFactors=FALSE)
+Deaths <- read.csv( "CountyData/CountyDeaths.csv", stringsAsFactors=FALSE)
 Deaths <- Deaths[,-1]
 
 if( as.character(Tested[nrow(Tested), 1]) != mydate){
@@ -38,6 +42,19 @@ Recovered <- rbind(Recovered, d_county[3,])
 Deaths <- rbind(Deaths, d_county[4,])
 }
 
+trows <- nrow(Tested)
+newTest <- as.integer(Tested[trows,-1])-as.integer(Tested[trows-1,-1])
+newPos <- as.integer(Positive[trows,-1])-as.integer(Positive[trows-1,-1])
+newRec <- as.integer(Recovered[trows,-1])-as.integer(Recovered[trows-1,-1])
+newDeath <- as.integer(Deaths[trows,-1])-as.integer(Deaths[trows-1,-1])
+
+NewToday <- rbind(newTest, newPos, newRec, newDeath)
+NewToday <- rbind(Active = as.integer(Positive[trows,-1]) - 
+                      as.numeric(Recovered[trows,-1]) -
+                      as.numeric(Deaths[trows,-1]),
+                  NewToday, PerPos = newPos/newTest)
+colnames(NewToday) <- county_names[1:101]
+
 # for(i in county_names){
 #     # county <- get(paste(i,"Data", sep=""))
 #     # temp <- CountyData[i,]
@@ -46,12 +63,10 @@ Deaths <- rbind(Deaths, d_county[4,])
 #     # assign(paste(i,"Data", sep=""), temp)
 #     rm(paste(i,"Data", sep=""))
 # }
-#####################################
-# Problem to solve: there is an aphostraphe in O'Brien
-#########################################
 
+county_names <- colnames(Tested)
 county_names <- gsub(" ", ".", county_names)
-for(i in 2:length(county_names)){
+for(i in 2:(length(county_names))){
     test <- as.numeric(Tested[,i])
     pos <- as.numeric(Positive[,i])
     rec <- as.numeric(Recovered[,i])
@@ -74,8 +89,8 @@ for(i in 2:length(county_names)){
             )
     
     assign(paste(county_names[i],"Data", sep=""), temp)
-    write.csv(temp, paste("CountyData/",county_names[i],
-                          "Data.csv", sep=""))
+    # write.csv(temp, paste("CountyData/",county_names[i],
+                          # "Data.csv", sep=""))
 }
 
 write.csv(Tested, "CountyData/CountyTests.csv")
