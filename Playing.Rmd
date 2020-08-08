@@ -76,14 +76,14 @@ mydate <- Sys.Date() -2  # Get today's date minus 2 days
 myprettydate <- format(mydate, format = "%d%b%Y")
 # pdffilename <- "https://www.homelandsecurity.iowa.gov/documents/covid-site/IA_C19_23JUL2020.pdf"
 # pdffilename <- paste("https://www.homelandsecurity.iowa.gov/documents/covid-site/IA_C19_",
+                     # myprettydate, ".pdf", sep="")
+# paste("https://idph.iowa.gov/Portals/1/userfiles/61/covid19/hospitalizations/IA_C19_",
 #                      myprettydate, ".pdf", sep="")
-# paste("https://www.homelandsecurity.iowa.gov/documents/covid-site/IA_C19_", 
+# pdffilename <- paste("C:\\Users\\mariah.birgen\\Downloads\\IA_C19_",
 #                      myprettydate, ".pdf", sep="")
-pdffilename <- paste("C:\\Users\\mariah.birgen\\Downloads\\IA_C19_", 
-                     myprettydate, ".pdf", sep="")
-
-# download.file(pdffilename, 'hosp_by_county.pdf', mode="wb")
-file.copy(pdffilename, 'hosp_by_county.pdf')
+# 
+#  download.file(pdffilename, 'hosp_by_county.pdf', mode="wb")
+# file.copy(pdffilename, 'hosp_by_county.pdf')
 ####### The next part turns the pdf into a data table
 
 hosp_by_county <- pdf_text("hosp_by_county.pdf") %>%
@@ -125,7 +125,7 @@ This is a graph of the known active cases in Iowa. These people have tested posi
 ```{r, echo=FALSE}
 pactive <- qplot(date, Still.Sick, data = clean[-(1:23),], geom = c("point", "smooth")) +
   ggtitle("Known Active COVID-19 Cases in Iowa")
-png("pactive.png")
+png(paste(day,"pactive.png"))
 pactive
 dev.off()
 pactive
@@ -137,15 +137,16 @@ Sigh. On June 30 IDPH decided to count anyone who was still not listed as recove
 
 ppositive <-qplot(date, New.Percent.Positive, data = clean[-(1:7),], geom = c("point", "smooth")) + ylab("Fraction Positive") +
 ggtitle("Fraction of Positive COVID-19 Tests in Iowa")
-png("ppositive.png")
+png(paste(day,"ppositive.png"))
 ppositive
 dev.off()
 ppositive
 
 p7positive <-qplot(date, Week.Positivity.Rate, data = clean[-(1:20),], geom = c("point", "smooth")) + ylab("Fraction Positive") +
 ggtitle("7 day average of Fraction of Positive COVID-19 Tests in Iowa")
-png("p7positive.png")
+png(paste(day,"p7positive.png"))
 
+p7positive
 dev.off()
 p7positive
 ```
@@ -173,7 +174,7 @@ pButler <-qplot(date,
   ggtitle("Known Active COVID-19 Cases in Butler County")
 #ggtitle("Known Active COVID-19 Cases in Butler County Per 100,000 People")
 #+  geom_hline(aes(yintercept=State_Average_Active)
-png("pButler.png")
+png(paste(day,"pButler.png"))
 pButler
 dev.off()
 pButler
@@ -184,11 +185,11 @@ pBlackHawk <-qplot(date,
   ggtitle("Known Active COVID-19 Cases in Black Hawk County")
 #ggtitle("Known Active COVID-19 Cases in Black Hawk County Per 100,000 People")
 #+  geom_hline(aes(yintercept=State_Average_Active)
-png("pBlackHawk.png")
+png(paste(day,"pBlackHawk.png"))
 pBlackHawk
 dev.off()
 
-png("pBremer.png")
+png(paste(day,"pBremer.png"))
 pBremer
 dev.off()
 pBremer

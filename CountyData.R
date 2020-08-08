@@ -14,7 +14,8 @@ temp <-c( EventResidentCounty = "Totals",
           date = as.character(mydate))
 CountyData <- rbind(CountyData, Total = temp)
 # CountyData <-cbind(date = as.Date(mydate), CountyData)
-write.csv(CountyData, file = 'CountyData/CountyData.csv', append = TRUE)
+write.csv(CountyData, file = paste(
+    'CountyData/',mydate,'CountyData.csv'))
 
 # hospital <- as.data.frame(read.csv("CountyHospitilizations.csv"))
 # hospital <- hospital[,-1]
@@ -47,12 +48,17 @@ newTest <- as.integer(Tested[trows,-1])-as.integer(Tested[trows-1,-1])
 newPos <- as.integer(Positive[trows,-1])-as.integer(Positive[trows-1,-1])
 newRec <- as.integer(Recovered[trows,-1])-as.integer(Recovered[trows-1,-1])
 newDeath <- as.integer(Deaths[trows,-1])-as.integer(Deaths[trows-1,-1])
+PerPos7 <- as.numeric((as.integer(Positive[trows,-1])-
+                           as.integer(Positive[trows-7,-1]))/
+                          (as.integer(Tested[trows,-1])-
+                               as.integer(Tested[trows-7,-1])))
 
 NewToday <- rbind(newTest, newPos, newRec, newDeath)
 NewToday <- rbind(Active = as.integer(Positive[trows,-1]) - 
                       as.numeric(Recovered[trows,-1]) -
                       as.numeric(Deaths[trows,-1]),
-                  NewToday, PerPos = newPos/newTest)
+                  NewToday, PerPos = newPos/newTest,
+                    PerPos7 = PerPos7)
 colnames(NewToday) <- county_names[1:101]
 
 # for(i in county_names){
@@ -84,8 +90,14 @@ for(i in 2:(length(county_names))){
             Active = Positive - Recovered - Deaths,
             New.Pos = Positive - lag(Positive),
             New.Test = Tested - lag(Tested),
+            New.Rec = Recovered - lag(Recovered),
             New.Deaths = Deaths - lag(Deaths),
-            Frac.Pos = New.Pos/New.Test
+            Frac.Pos = New.Pos/New.Test,
+            Day7.Pos = Positive - lag(Positive, n=7),
+            Day7.Rec = Recovered - lag(Recovered, n=7),
+            Day7.Death = Deaths - lag(Deaths, n=7),
+            Day7.Active = Active - lag(Active, n=7),
+            Day7.Perc = Day7.Pos/(Tested - lag(Tested, n=7))
             )
     
     assign(paste(county_names[i],"Data", sep=""), temp)
