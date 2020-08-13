@@ -43,6 +43,11 @@ Recovered <- rbind(Recovered, d_county[3,])
 Deaths <- rbind(Deaths, d_county[4,])
 }
 
+# Tested <- Tested[-nrow(Tested),]
+# Positive <- Positive[-nrow(Positive),]
+# Recovered <- Recovered[-nrow(Recovered),]
+# Deaths <- Deaths[-nrow(Deaths),]
+
 trows <- nrow(Tested)
 newTest <- as.integer(Tested[trows,-1])-as.integer(Tested[trows-1,-1])
 newPos <- as.integer(Positive[trows,-1])-as.integer(Positive[trows-1,-1])
@@ -71,11 +76,14 @@ colnames(NewToday) <- county_names[1:101]
 # }
 
 county_names <- colnames(Tested)
+county_names <- county_names[-76]
 county_names <- gsub(" ", ".", county_names)
 for(i in 2:(length(county_names))){
     test <- as.numeric(Tested[,i])
+    temp = length(test)
     pos <- as.numeric(Positive[,i])
     rec <- as.numeric(Recovered[,i])
+    hosp <- as.integer(hospital[(nrow(hospital)-temp+1):nrow(hospital),i])
     death <- as.numeric(Deaths[,i])
     dates <- Tested[,1]    
     temp <- data.frame(
@@ -83,6 +91,7 @@ for(i in 2:(length(county_names))){
         Tested = test,
         Positive = pos,
         Recovered = rec,
+        Hospitalized = hosp,
         Deaths = death)
     
     temp <- temp %>% 
@@ -110,3 +119,48 @@ write.csv(Positive, "CountyData/CountyPositive.csv")
 write.csv(Recovered, "CountyData/CountyRecovered.csv")
 write.csv(Deaths, "CountyData/CountyDeaths.csv")
 
+##########################
+## This all worked fine, 
+## except that there are way too many counties.
+##########################
+
+names_list = c("Bremer",
+               "Black Hawk", "Butler",
+               "Fayette", "Chickasaw")
+
+# names_list = c("Cerro Gordo", "Butler" ,"Franklin" )
+temp1 = data.frame()
+for(i in names_list){
+    
+    i1 <- gsub(" ", ".", i)
+    i1 <- gsub("'", ".", i1)
+    pos <- as.numeric(Positive[,i1])
+    rec <- as.numeric(Recovered[,i1])
+    death <- as.numeric(Deaths[,i1])
+    dates <- Tested[,1]  
+    temp <- data.frame(
+        date = dates,
+        Positive = pos,
+        Recovered = rec,
+        Deaths = death)
+    
+    pop  <- county[
+        county$STATE=="Iowa"&county$COUNTY==i,][,3]
+    temp <- temp %>% 
+        mutate(
+            Active = Positive - Recovered - Deaths,
+            PC = Active/pop*100000,
+            County = i
+        )
+    temp1 = rbind(temp1,temp[,c("date", "County", "PC")])
+}
+
+temp1$date  <- as.Date(temp1$date)
+
+qplot(date, PC, color = County, data = temp1,
+      # show.legend = FALSE
+      geom = "point") +
+    geom_smooth()+
+    # geom_line()+
+    ylab("Cases per 100,000") +
+    labs(color = "County", title = "Active Cases Per 100,000")

@@ -13,6 +13,7 @@ suppressPackageStartupMessages( require(gsheet))
 ```
 
 Load data
+
 ```{r load, echo = FALSE}
 covid19 <- read.csv("covid19.csv", stringsAsFactors = FALSE)
 county <- read.csv("censusCounties.csv", stringsAsFactors = FALSE)
@@ -89,8 +90,7 @@ myprettydate <- format(mydate, format = "%d%b%Y")
 hosp_by_county <- pdf_text("hosp_by_county.pdf") %>%
     readr::read_lines() %>% 
     str_squish()
-hosp_by_county <- hosp_by_county[-(1:4)]
-hosp_by_county <- hosp_by_county[-(34:36)]
+hosp_by_county <- hosp_by_county[5:37]
 hosp_by_county <-hosp_by_county %>%
     strsplit("(?= [A-Za-z])(?<=[0-9])|(?= [0-9])(?<=[A-Za-z])", perl=TRUE)
     
@@ -104,7 +104,10 @@ hosp_by_county <- rbind(temp1, temp2, temp3)
 colnames(hosp_by_county) <- c("County", "Hospitalized")
 hosp_by_county <-hosp_by_county %>%
     mutate(Hospitalized = as.numeric(Hospitalized))
+temp1 = sum(hosp_by_county[,2])
+hosp_by_county <- rbind(hosp_by_county, c("Totals", temp1))
 rm(temp1, temp2, temp3, hosp_by_county_df)
+
 rownames(hosp_by_county) <- hosp_by_county[,1]
 ```
 # Iowa COVID-19 Summary `r day`
@@ -188,15 +191,20 @@ pBlackHawk <-qplot(date,
 png(paste(day,"pBlackHawk.png"))
 pBlackHawk
 dev.off()
+pBlackHawk
 
 png(paste(day,"pBremer.png"))
 pBremer
 dev.off()
 pBremer
-```
-There are `r clean$Bremer.SS[nrow(clean)]` active cases and `r hosp_by_county["Bremer",][[2]]` hospitalized in Bremer County today.
 
-`r hosp_by_county[c("Bremer", "Butler", "Black Hawk"),][2]`
+day7pos.Bremer <- round(
+  BremerData[nrow(BremerData), "One Week Positivity Rate"]*100, digits=1)
+```
+
+There are `r clean$Bremer.SS[nrow(clean)]` active cases in Bremer County today. The 7 day positivity rate is `r day7pos.Bremer`%.
+
+
 
 ## Positive Tests
 
@@ -461,8 +469,11 @@ accuracy <- clean %>%
     mutate( pos = round(tp+fn, digits = 0),
             neg = round(tn+fp, digits = 0))
 lastrow = length(accuracy)
+
+# Today, the state reported `r accuracy[lastrow, 3]` total positive and `r accuracy[lastrow, 9]` total negative. Due to test inaccuracy, these numbers could be as much as `r format(accuracy[lastrow, 26], scientific = F)` positive and `r format(accuracy[lastrow, 27], scientific = F)` negative.
 ```
-Today, the state reported `r accuracy[lastrow, 3]` total positive and `r accuracy[lastrow, 9]` total negative. Due to test inaccuracy, these numbers could be as much as `r format(accuracy[lastrow, 26], scientific = F)` positive and `r format(accuracy[lastrow, 27], scientific = F)` negative.
+
+
 
 # Store Predictions
 This section stores predictions.
@@ -470,14 +481,14 @@ This section stores predictions.
 predictions <- as.data.frame(read.csv("Predictions.csv"))
 predictions <- predictions[,-1]
 predictions$date <- as.Date(predictions$date)
-list <- data.frame(date = day, 
-          PositiveDoubling = positive_doubling_time, 
-          latePositiveDoubling = positive_doubling_time2, 
-          DeathDoubling = death_doubling_time, 
-          LateDeathDoubling = death_doubling_time2, 
+list <- data.frame(date = day,
+          PositiveDoubling = positive_doubling_time,
+          latePositiveDoubling = positive_doubling_time2,
+          DeathDoubling = death_doubling_time,
+          LateDeathDoubling = death_doubling_time2,
           NewPositiveDoubling = np_doubling_time,
-          LogisticR = r, 
-          LogisticM = M, 
+          LogisticR = r,
+          LogisticM = M,
           FourteenDayPrediction = predict14
           )
 list$date <- as.Date(list$date)
@@ -485,17 +496,17 @@ rownames(list) <- c()
 if(as.character(predictions[nrow(predictions),1])!= day){
   predictions = rbind(predictions, list)
 }
-hospital <- as.data.frame(read.csv("CountyHospitilizations.csv"))
-hospital <- hospital[,-1]
-h_county <-  t(hosp_by_county[,2])
-
-colnames(h_county) <-  hosp_by_county[,1]
-h_county <- cbind(date = c(as.character(day)), h_county)
-colnames(h_county) <- colnames(hospital)
-rownames(h_county) <- as.character(day)
-if(as.character(hospital[nrow(hospital),1])!= day){ hospital <- rbind(hospital, h_county)}
-
-write.csv(hospital, "CountyHospitilizations.csv")
+# hospital <- as.data.frame(read.csv("CountyHospitilizations.csv"))
+# hospital <- hospital[,-1]
+# h_county <-  t(hosp_by_county[,2])
+#
+# colnames(h_county) <-  hosp_by_county[,1]
+# h_county <- cbind(date = c(as.character(day)), h_county)
+# colnames(h_county) <- colnames(hospital)
+# # rownames(h_county) <- as.character(day)
+# if(as.character(hospital[nrow(hospital),1])!= day){ hospital <- rbind(hospital, h_county)}
+#
+# write.csv(hospital, "CountyHospitilizations.csv")
 write.csv(predictions, "Predictions.csv")
 write.csv(clean, "CleanData.csv")
 ```
