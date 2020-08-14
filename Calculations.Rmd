@@ -1,0 +1,326 @@
+---
+title: "Covid-19 Analysis"
+author: "Mariah Birgen, Ph.D."
+output: html_notebook
+---
+
+```{r , echo=FALSE}
+suppressPackageStartupMessages( require(dplyr))
+suppressPackageStartupMessages( require(lubridate))
+suppressPackageStartupMessages( require(ggplot2))
+suppressPackageStartupMessages( require(zoo))
+suppressPackageStartupMessages( require(gsheet))
+suppressPackageStartupMessages(require(plyr))
+suppressPackageStartupMessages(require(pdftools))
+suppressPackageStartupMessages(require(tidyverse))
+```
+
+Load Data
+```{r , echo = FALSE}
+### Read "by hand" csv file
+covid19 <- read.csv("covid19.csv", stringsAsFactors = FALSE)
+
+## Read County population data
+county <- read.csv("censusCounties.csv", stringsAsFactors = FALSE)
+
+## Read data from the pdf of hospitilzation by county. Not ready to automate.
+hosp_by_county <- pdf_text("hosp_by_county.pdf") %>%
+    readr::read_lines() %>% 
+    str_squish()
+```
+
+Clean Data
+```{r , echo=FALSE}
+names(covid19)[names(covid19) == "ï..date"] <- 'date'
+covid19$date <- mdy(covid19$date)
+clearn <- !is.na(covid19$positive)
+clean <- covid19[clearn,]
+calculate <- with(data = clean,data.frame(
+  New.Positive = diff(positive),
+  New.Negative = diff(negative),
+  Total.Daily.Tests = diff(Total.Tested),
+  New.Deaths = diff(deaths)
+  ))
+calculate <- rbind(c(NA,NA,NA,NA), calculate)
+calculate <- cbind(date = clean$date, calculate)
+cdeaths <- covid19[!is.na(covid19$deaths),]
+clean <- clean %>% mutate(
+  negative = Total.Tested - positive,
+  Percent.Pos = positive/Total.Tested*100,
+  np_7day = rollmean(New.Positive, k=7, align = "right", fill = NA),
+  New.Positive = calculate$New.Positive,
+  New.Negative = calculate$New.Negative,
+  Total.Daily.Tests = calculate$Total.Daily.Tests,
+  New.Deaths = calculate$New.Deaths,
+  New.Percent.Positive = New.Positive/Total.Daily.Tests
+)
+clean <- clean %>% mutate(
+  Week.Positivity = rollapply(New.Positive, 7, FUN=sum, fill = NA),
+  Week.Tests = rollapply(Total.Daily.Tests, 7, FUN=sum, fill = NA),
+  Week.Positivity.Rate = Week.Positivity/Week.Tests
+  )
+clean$wktot <- sapply(clean$date,function(x)sum(clean[difftime(clean$date,x,,"days") %in% 0:-6,]$New.Positive))
+lastrow <- nrow(clean)
+clean <- clean %>% mutate(
+  nd_7day = rollmean(deaths, k=7, fill = NA,),
+  pp_7day = rollmean(New.Percent.Positive, k=7, fill = NA))
+
+today <- clean[nrow(clean),]
+day <- today$date
+new_pos <- today$New.Positive
+percent_pos <- round(today$New.Percent.Positive*100, digits = 1)
+percent_pos7 <- round(clean$Week.Positivity.Rate[nrow(clean)-4]*100, digits = 1)
+
+percent_hospital <- today$Percent.Hospitalized
+ICU <- today$ICU
+percent_ICU <- round(today$ICU/today$hospitalized*100, digits = 1)
+sick <- format(today$Still.Sick, scientific = FALSE, big.mark=",")
+IowaPop <- 3155070
+```
+
+```{r hospital, echo = FALSE}
+
+#########################################
+####### This section downloads the hospitalization data per county. It was added July 25, 2020.
+#########################################
+require(pdftools)
+require(tidyverse)
+
+######## The file name is based on the date.
+mydate <- Sys.Date() -2  # Get today's date minus 2 days
+myprettydate <- format(mydate, format = "%d%b%Y")
+
+hosp_by_county <- hosp_by_county[5:37]
+hosp_by_county <-hosp_by_county %>%
+    strsplit("(?= [A-Za-z])(?<=[0-9])|(?= [0-9])(?<=[A-Za-z])", perl=TRUE)
+    
+hosp_by_county_df <- plyr::ldply(hosp_by_county)
+temp1 <- hosp_by_county_df[,1:2]
+temp2 <- hosp_by_county_df[,3:4]
+temp3 <- hosp_by_county_df[,5:6]
+colnames(temp2) <- names(temp1)
+colnames(temp3) <- names(temp1)
+hosp_by_county <- rbind(temp1, temp2, temp3)
+colnames(hosp_by_county) <- c("County", "Hospitalized")
+hosp_by_county <-hosp_by_county %>%
+    mutate(Hospitalized = as.numeric(Hospitalized))
+temp1 = sum(hosp_by_county[,2])
+hosp_by_county <- rbind(hosp_by_county, c("Totals", temp1))
+rm(temp1, temp2, temp3, hosp_by_county_df)
+
+rownames(hosp_by_county) <- hosp_by_county[,1]
+```
+
+# Iowa COVID-19 Summary `r day`
+
+Today we had `r new_pos` new positive tests which is `r percent_pos`% (`r percent_pos7`% in the last week) of the tests recorded in the last 24 hours. There are `r sick` people actively sick and `r percent_hospital` (`r today$hospitalized`) are hospitalized. `r percent_ICU`% (`r ICU`) of those hospitalized are in the ICU. 
+
+## View Data
+So, it turns out to be very difficult to find past data in the State of Iowa since they re-publish everything daily.  Here are the last 6 days of data if you are interested:
+```{r}
+tail(clean)
+```
+
+## Graphing
+
+
+### Known Active Cases
+This is a graph of the known active cases in Iowa. These people have tested positive, but have not moved on to a stage where they are not infectious. I say it that way because we know that a lot of patients with mild and moderate COVID-19 are very sick even after they are no longer infectious.
+
+```{r, echo=FALSE}
+pactive <- qplot(date, Still.Sick, data = clean[-(1:23),], geom = c("point", "smooth")) +
+  ggtitle("Known Active COVID-19 Cases in Iowa")
+png(paste(day,"pactive.png"))
+pactive
+dev.off()
+pactive
+```
+
+### Percent Positive Active Cases
+```{r,echo=False}
+
+ppositive <-qplot(date, New.Percent.Positive, data = clean[-(1:7),], geom = c("point", "smooth")) + ylab("Fraction Positive") +
+ggtitle("Fraction of Positive COVID-19 Tests in Iowa")
+png(paste(day,"ppositive.png"))
+ppositive
+dev.off()
+ppositive
+
+p7positive <-qplot(date, Week.Positivity.Rate, data = clean[-(1:20),], geom = c("point", "smooth")) + ylab("Fraction Positive") +
+ggtitle("7 day average of Fraction of Positive COVID-19 Tests in Iowa")
+png(paste(day,"p7positive.png"))
+
+p7positive
+dev.off()
+p7positive
+```
+
+## Bremer County
+I started recording daily data on Bremer county on May 29, 2020. There will be problems with the recovered data since I have yet to get tables of data for the county and the definition of recovered changed on June 30. Thus, the following graph omits that data.
+```{r, echo=FALSE}
+State_Average_Active <- today$Still.Sick/IowaPop*100000
+Bremer_Population <- county[county$COUNTY=="Bremer",][,3]
+Butler_Population <- county[county$STATE=="Iowa"&county$COUNTY=="Butler",][,3]
+BlackHawk_Population <- county[county$STATE=="Iowa"&county$COUNTY=="Black Hawk",][,3]
+pBremer <-qplot(date,
+                # Bremer.SS/Bremer_Population*100000,
+                Bremer.SS,
+                data = clean[-(1:71),], geom = c("point", "smooth")) +
+  ggtitle(
+    # "Known Active COVID-19 Cases in Bremer County Per 100,000 People")
+    "Known Active COVID-19 Cases in Bremer County")
+# +  geom_hline(aes(yintercept=State_Average_Active)
+pButler <-qplot(date,
+                #Butler.SS/Butler_Population*100000,
+                Butler.SS,
+                data = clean[-(1:116),], geom = c("point", "smooth")) +
+  ggtitle("Known Active COVID-19 Cases in Butler County")
+#ggtitle("Known Active COVID-19 Cases in Butler County Per 100,000 People")
+#+  geom_hline(aes(yintercept=State_Average_Active)
+png(paste(day,"pButler.png"))
+pButler
+dev.off()
+pButler
+pBlackHawk <-qplot(date,
+              BlackHawk.SS, 
+              #BlackHawk.SS/BlackHawk_Population*100000,
+              data = clean[-(1:116),], geom = c("point", "smooth")) +
+  ggtitle("Known Active COVID-19 Cases in Black Hawk County")
+#ggtitle("Known Active COVID-19 Cases in Black Hawk County Per 100,000 People")
+#+  geom_hline(aes(yintercept=State_Average_Active)
+png(paste(day,"pBlackHawk.png"))
+pBlackHawk
+dev.off()
+pBlackHawk
+
+png(paste(day,"pBremer.png"))
+pBremer
+dev.off()
+pBremer
+
+day7pos.Bremer <- round(
+  BremerData$Day7.Perc[nrow(BremerData)]*100, digits=1)
+```
+
+
+There are `r clean$Bremer.SS[nrow(clean)]` active cases in Bremer County today. The 7 day positivity rate is `r day7pos.Bremer`%.
+
+## Positive Tests
+
+### Logistic Model
+To try to fit a logistic model to the data, we want to fit a parabola to the rate of change, but the input variable is cases or deaths and not time.  This is because the logistic model comes from the differential equation $\displaystyle{\frac{dP}{dt}= kP(1-\frac{P}{M})}$.  Note that this equation as a function of $P$ is a parabola with zeroes at $P=0$ and $P=M$.
+```{r}
+clean <- clean[-c(1,10),]
+with(clean, plot(positive, New.Positive, pch=16, xlab = "Positive Counts", ylab = "Rate of Change of Positive", cex.lab = 1.3, col = "blue"))
+```
+Now, it doesn't really look quadratic, but we are not going to let that stop us from mathematics. Next, we will fit a quadratic model to the data.
+```{r}
+clean$P2 <- as.numeric(clean$positive)^2
+quadratic <-lm(New.Positive ~ positive + P2-1, data = clean)
+r <- quadratic$coefficients[2]*(-1)
+M <- quadratic$coefficients[1]/r
+Mprint <- format(M, scientific = FALSE)
+predictedcounts <- with(clean,predict(quadratic,list(positive = positive, P2 = P2)))
+```
+Let's plot the model:
+```{r}
+with(clean, plot(positive, New.Positive, pch=16, xlab = "Positive Counts", ylab = "Rate of Change of Positive", cex.lab = 1.3, col = "blue"))
+with(clean,lines(positive, predictedcounts, col = "darkgreen", lwd = 3))
+IowaPercent <- round(M/IowaPop*100, digits = 2)
+```
+So, we have a quadratic model that looks like $\frac{dP}{dt}$ = `r quadratic$coefficients[1]`$P^2$ + `r quadratic$coefficients[2]`$P$ = `r r`$P(1-P/$ `r Mprint`$)$. This is looking pretty good. In particular, because $M=$ `r Mprint`, we can estimate that `r IowaPercent`% of Iowa's population will become infected.  We would like to see what that looks like for the original data. When R performs logistic modeling, it usually has binomial data and thus expects numbers that are between zero and one. We will use our estimate of $M$ to create positive counts that are a percentage of $M$. 
+```{r, echo = FALSE}
+logisticGrowthy <- function(data, M){
+data$binomial <- data$positive/M
+mylogit <- glm(binomial ~ date, data = data, family = "binomial")
+ypredict <- predict(mylogit, list(date = data$date), type = "response")*M
+}
+clean$binomial <- clean$positive/M
+mylogit <- glm(binomial ~ date, data = clean, family = "binomial")
+ypredict <- predict(mylogit, list(date = clean$date), type = "response")*M
+#ypredict <- logisticGrowthy(clean, M)
+qplot(date, positive, data = clean) +
+  #stat_smooth(method = "lm", col = "green") +
+  geom_line(aes(y = ypredict, col = "model"), size = 1.25) 
+```
+Okay, that looks quite good. What will it predict for the next 28 days?
+```{r, echo=FALSE}
+ndate <-seq(as.Date("2020-03-09"),as.Date(day + 14),by = 1)
+#play <- clean %>% filter(row_number() >= (n() - 7))
+play <- clean
+ypredict2 <- predict(mylogit, list(date =ndate), type = "response")*M
+df <- data.frame(date = ndate, model = ypredict2)
+df <- merge(df, play, all = TRUE)
+predict14 <- format(round(ypredict2[length(ypredict2)], digits = 0), scientific = FALSE)
+
+ndate <-seq(as.Date("2020-03-09"),as.Date(day + 28),by = 1)
+ypredict3 <- predict(mylogit, list(date =ndate), type = "response")*M
+df2 <- data.frame(date = ndate, model = ypredict3)
+df2 <- merge(df2, play, all = TRUE)
+qplot(date, model, ylab = "Positive Cases", data = df2, geom = "smooth") + 
+  #geom_line(size = 1.25, color = "red") +
+  geom_point(aes(y=positive), shape = 8) + theme(legend.position = 'right')
+```
+
+This predicts that in 14 days, Iowa will have `r predict14` infected people.
+
+# Accuracy
+As with any test, there will be false positives (people who test positive, but aren't infected) and false negatives (people who test negative, but are infected). On May 1, it was reported by the Governor's office: 
+
+"Governor Reynolds says the State Hygienic Lab has validated the machines used as part of the Test Iowa program.  “I’m pleased to announce that the State Hygienic Lab completed the Test Iowa validation process yesterday, achieving high ratings of 95% accuracy for determining positives and 99.7% accuracy for determining negatives.”"
+
+This is a bit hard to interpret, but I am going to assume that it means that the false positive rate is 0.3% and the false negative rate is 5%. This agrees with earlier reports of testing where the tests used to show that you are currently infected have pretty low false positive rates and higher false negative rates because it comes back positive if it finds the virus. A false negative would be that you have the virus, but the test can't find it which isn't out of the range of possibility.  So, let's go back to our data and calculate the numbers: 
+```{r}
+temp <- 1/(.997*.95 - (1-.995)*(1-.95))
+accuracy <- clean %>% 
+    mutate(
+    tp = .95*positive/temp, 
+    fp = (1-.993)/temp*positive, 
+    tn = 0.993/temp*negative, 
+    fn = (1-.95)/temp*negative) %>%
+    mutate( pos = round(tp+fn, digits = 0),
+            neg = round(tn+fp, digits = 0))
+lastrow = length(accuracy)
+```
+
+Today, the state reported `r accuracy[lastrow, 3]` total positive and `r accuracy[lastrow, 9]` total negative. Due to test inaccuracy, these numbers could be as much as `r format(accuracy[lastrow, 26], scientific = F)` positive and `r format(accuracy[lastrow, 27], scientific = F)` negative.
+
+# Store Predictions
+This section stores predictions.
+```{r, echo=FALSE}
+predictions <- as.data.frame(read.csv("Predictions.csv"))
+predictions <- predictions[,-1]
+predictions$date <- as.Date(predictions$date)
+list <- data.frame(date = day, 
+          PositiveDoubling = positive_doubling_time, 
+          latePositiveDoubling = positive_doubling_time2, 
+          DeathDoubling = death_doubling_time, 
+          LateDeathDoubling = death_doubling_time2, 
+          NewPositiveDoubling = np_doubling_time,
+          LogisticR = r, 
+          LogisticM = M, 
+          FourteenDayPrediction = predict14
+          )
+list$date <- as.Date(list$date)
+rownames(list) <- c()
+if(as.character(predictions[nrow(predictions),1])!= day){
+  predictions = rbind(predictions, list)
+}
+hospital <- as.data.frame(read.csv("CountyHospitilizations.csv"))
+hospital <- hospital[,-1]
+
+h_county <-  t(hosp_by_county[,2])
+
+colnames(h_county) <-  hosp_by_county[,1]
+h_county <- cbind(date = c(date, h_county))
+rownames(h_county) <- colnames(hospital)
+h_county <- t(h_county)
+# rownames(h_county) <- as.character(day)
+if(as.character(hospital[nrow(hospital),1])!= day){
+    hospital <- rbind(hospital, h_county)
+    }
+
+write.csv(hospital, "CountyHospitilizations.csv")
+write.csv(predictions, "Predictions.csv")
+write.csv(clean, "CleanData.csv")
+```

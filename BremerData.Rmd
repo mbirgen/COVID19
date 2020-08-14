@@ -1,0 +1,56 @@
+---
+title: "Bremer County"
+output:
+  pdf_document: default
+  html_notebook: default
+---
+
+Welcome to the Bremer County COVID-19 Data Page.
+
+## Summary
+```{r,echo=FALSE}
+require(knitr)
+```
+
+There are a total of `r as.integer(lastrow["Active Cases"])` active cases in the county today with `r as.integer(lastrow["Hospitalized"])` people hospitalized. In the last 24 hours we have had `r as.integer(lastrow[8])` new positive tests out of `r as.integer(lastrow[9])`. We have had `r as.integer(lastrow["New Deaths"])` new deaths. 
+
+More generally, in the last week, there have been `r as.integer(lastrow["New Positive Cases in last week"])` new cases in the last week with `r as.integer(lastrow["New Recoveries in last week"])` recoveries. Our 7 day positivity rate is `r as.numeric(round(lastrow["One Week Positivity Rate"]*100, digits = 2))`%.
+
+```{r, echo = FALSE, error=FALSE}
+require(reshape2)
+mydate <- Sys.Date()
+
+Bremer_Population <- county[county$COUNTY=="Bremer",][,3]
+Butler_Population <- county[county$STATE=="Iowa"&county$COUNTY=="Butler",][,3]
+BlackHawk_Population <- county[
+    county$STATE=="Iowa"&county$COUNTY=="Black Hawk",
+    ][,3]
+
+temp = clean[,c("date","Bremer.SS", "Butler.SS", "BlackHawk.SS")]
+temp = temp %>% mutate(Bremer = Bremer.SS/Bremer_Population*100000,
+                       Butler = Butler.SS/Butler_Population* 100000,
+                       BlackHawk = BlackHawk.SS/BlackHawk_Population * 100000)
+temp = temp[-(1:71),]
+mtemp = melt(temp, id.vars = "date", 
+             measure.vars = c('Bremer', 'Butler', 'BlackHawk'))
+printplot <- qplot(date, value, color = variable, data = mtemp, geom = c("point", "smooth")) +
+    ylab("Cases per 100,000") +
+    labs(color = "County", title = paste("Active Cases Per 100,000", mydate))
+
+print(printplot)
+
+```
+
+
+Here is the latest information availible as of `r  Sys.Date()` :
+```{r data0, echo = FALSE}
+colnames(BremerData) = CountyDataLongNames
+lastrow <- BremerData[nrow(BremerData),]
+kable(t(lastrow[-1]), digits = 2)
+```
+
+```{r data1, echo = FALSE}
+kable(BremerData[,1:7])
+```
+
+
