@@ -1,8 +1,8 @@
 ---
 title: "Bremer County"
 output:
-  pdf_document: default
   html_notebook: default
+  pdf_document: default
 ---
 
 Welcome to the Bremer County COVID-19 Data Page.
@@ -12,9 +12,9 @@ Welcome to the Bremer County COVID-19 Data Page.
 require(knitr)
 ```
 
-There are a total of `r as.integer(lastrow["Active Cases"])` active cases in the county today with `r as.integer(lastrow["Hospitalized"])` people hospitalized. In the last 24 hours we have had `r as.integer(lastrow[8])` new positive tests out of `r as.integer(lastrow[9])`. We have had `r as.integer(lastrow["New Deaths"])` new deaths. 
+There are `r as.integer(lastrow["Active"])` active cases in the county today with 
 
-More generally, in the last week, there have been `r as.integer(lastrow["New Positive Cases in last week"])` new cases in the last week with `r as.integer(lastrow["New Recoveries in last week"])` recoveries. Our 7 day positivity rate is `r as.numeric(round(lastrow["One Week Positivity Rate"]*100, digits = 2))`%.
+More generally, in the last week, there have been `r as.integer(lastrow["New Positive Cases in last week"])` new cases in the last week with `r as.integer(lastrow["Day7.Pos"])` recoveries. Our 7 day positivity rate is `r as.numeric(round(lastrow["Day7.Perc"]*100, digits = 2))`%. Our 7 day positivity rate is `r as.numeric(round(lastrow["Day14.Perc"]*100, digits = 2))`%.
 
 ```{r, echo = FALSE, error=FALSE}
 require(reshape2)
@@ -44,7 +44,7 @@ print(printplot)
 
 Here is the latest information availible as of `r  Sys.Date()` :
 ```{r data0, echo = FALSE}
-colnames(BremerData) = CountyDataLongNames
+# colnames(BremerData) = CountyDataLongNames
 lastrow <- BremerData[nrow(BremerData),]
 kable(t(lastrow[-1]), digits = 2)
 ```

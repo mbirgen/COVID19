@@ -199,7 +199,7 @@ dev.off()
 pBremer
 
 day7pos.Bremer <- round(
-  BremerData[nrow(BremerData), "One Week Positivity Rate"]*100, digits=1)
+  BremerData[nrow(BremerData), ncol(BremerData)]*100, digits=1)
 ```
 
 There are `r clean$Bremer.SS[nrow(clean)]` active cases in Bremer County today. The 7 day positivity rate is `r day7pos.Bremer`%.

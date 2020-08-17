@@ -1,5 +1,6 @@
 mydate <- Sys.Date()
-filename <- "C:\\Users\\mariah.birgen\\Downloads\\Summary.csv"
+# filename <- "C:\\Users\\mariah.birgen\\Downloads\\Summary.csv"
+filename <- "Summary.csv"
 CountyData <- read.csv(filename, 
                        stringsAsFactors = FALSE)
 
@@ -114,6 +115,8 @@ for(i in 2:(length(county_names))){
                           # "Data.csv", sep=""))
 }
 
+write.csv(BremerData, "CountyData/BremerData.csv")
+
 write.csv(Tested, "CountyData/CountyTests.csv")
 write.csv(Positive, "CountyData/CountyPositive.csv")
 write.csv(Recovered, "CountyData/CountyRecovered.csv")
@@ -128,7 +131,7 @@ names_list = c("Bremer",
                "Black Hawk", "Butler",
                "Fayette", "Chickasaw")
 
-# names_list = c("Cerro Gordo", "Butler" ,"Franklin" )
+names_list = c("Winneshiek", "Bremer" )
 temp1 = data.frame()
 for(i in names_list){
     
@@ -163,4 +166,6 @@ qplot(date, PC, color = County, data = temp1,
     geom_smooth()+
     # geom_line()+
     ylab("Cases per 100,000") +
+  geom_hline(yintercept = 100, color = "purple")+
+  ylab("Cases per 100,000")+
     labs(color = "County", title = "Active Cases Per 100,000")
