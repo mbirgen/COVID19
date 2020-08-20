@@ -103,18 +103,57 @@ for(i in 2:(length(county_names))){
             New.Rec = Recovered - lag(Recovered),
             New.Deaths = Deaths - lag(Deaths),
             Frac.Pos = New.Pos/New.Test,
+            Day7.Test = Tested - lag(Tested, n=7),
             Day7.Pos = Positive - lag(Positive, n=7),
             Day7.Rec = Recovered - lag(Recovered, n=7),
             Day7.Death = Deaths - lag(Deaths, n=7),
             Day7.Active = Active - lag(Active, n=7),
-            Day7.Perc = Day7.Pos/(Tested - lag(Tested, n=7))
-            )
+            Day7.Perc = Day7.Pos/Day7.Test,
+            Day14.Test = Tested - lag(Tested, n=14),
+            Day14.Pos = Positive - lag(Positive, n=14),
+            Day14.Rec = Recovered - lag(Recovered, n=14),
+            Day14.Death = Deaths - lag(Deaths, n=14),
+            Day14.Active = Active - lag(Active, n=14),
+            Day14.Perc = Day14.Pos/Day14.Test
+        )
     
     assign(paste(county_names[i],"Data", sep=""), temp)
     # write.csv(temp, paste("CountyData/",county_names[i],
                           # "Data.csv", sep=""))
 }
 
+# Adding more data to Bremer
+temp <- clean %>% select("date","Bremer.Positive", 
+                         "Bremer.Recovered", "Bremer.Death")
+names(temp) = c("date","Positive", "Recovered", "Deaths")
+temp <- subset(temp, 
+               !is.na(Positive) & date < "2020-07-31")%>% 
+  mutate(Tested = NA)
+temp2 <- BremerData %>% select("date", "Tested","Positive", "Recovered", "Deaths")
+temp = rbind(temp, temp2)
+rm(temp2)
+temp <- temp  %>% 
+  mutate(
+    Active = Positive - Recovered - Deaths,
+    New.Pos = Positive - lag(Positive),
+    New.Test = Tested - lag(Tested),
+    New.Rec = Recovered - lag(Recovered),
+    New.Deaths = Deaths - lag(Deaths),
+    Frac.Pos = New.Pos/New.Test,
+    Day7.Test = Tested - lag(Tested, n=7),
+    Day7.Pos = Positive - lag(Positive, n=7),
+    Day7.Rec = Recovered - lag(Recovered, n=7),
+    Day7.Death = Deaths - lag(Deaths, n=7),
+    Day7.Active = Active - lag(Active, n=7),
+    Day7.Perc = Day7.Pos/Day7.Test,
+    Day14.Test = Tested - lag(Tested, n=14),
+    Day14.Pos = Positive - lag(Positive, n=14),
+    Day14.Rec = Recovered - lag(Recovered, n=14),
+    Day14.Death = Deaths - lag(Deaths, n=14),
+    Day14.Active = Active - lag(Active, n=14),
+    Day14.Perc = Day14.Pos/Day14.Test
+  )
+BremerData = temp
 write.csv(BremerData, "CountyData/BremerData.csv")
 
 write.csv(Tested, "CountyData/CountyTests.csv")

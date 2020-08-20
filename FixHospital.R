@@ -1,4 +1,6 @@
 require(plyr)
+require(pdftools)
+require(tidyverse)
 
 hosp_by_county <- pdf_text("hosp_by_county.pdf") %>%
     readr::read_lines() %>% 

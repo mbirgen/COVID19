@@ -10,11 +10,17 @@ Welcome to the Bremer County COVID-19 Data Page.
 ## Summary
 ```{r,echo=FALSE}
 require(knitr)
+lastrow <- BremerData[nrow(BremerData),]
+AC = as.integer(lastrow["Active"])
+H = as.integer(lastrow["Hospitalized"])
+NP = as.integer(lastrow["New.Pos"])
+PR = as.numeric(round(lastrow["Frac.Pos"]*100, digits = 2))
+ND = as.integer(lastrow["New.Deaths"])
+T = as.integer(lastrow["New.Test"])
 ```
+`r AC` active cases in Bremer County, IA today with `r H` hospitalized and `r ND` new deaths. In the last 24 hours we have had `r NP` new positive tests out of `r T` which gives us a positivity rate of `r  PR`%.
 
-There are `r as.integer(lastrow["Active"])` active cases in the county today with 
-
-More generally, in the last week, there have been `r as.integer(lastrow["New Positive Cases in last week"])` new cases in the last week with `r as.integer(lastrow["Day7.Pos"])` recoveries. Our 7 day positivity rate is `r as.numeric(round(lastrow["Day7.Perc"]*100, digits = 2))`%. Our 7 day positivity rate is `r as.numeric(round(lastrow["Day14.Perc"]*100, digits = 2))`%.
+More generally, in the last week, there have been `r as.integer(lastrow["Day7.Pos"])` new cases in the last week with `r as.integer(lastrow["Day7.Pos"])` recoveries. Our 7-day positivity rate is `r as.numeric(round(lastrow["Day7.Perc"]*100, digits = 2))`%. Our 14-day positivity rate is `r as.numeric(round(lastrow["Day14.Perc"]*100, digits = 2))`%.
 
 ```{r, echo = FALSE, error=FALSE}
 require(reshape2)
@@ -38,7 +44,9 @@ printplot <- qplot(date, value, color = variable, data = mtemp, geom = c("point"
     labs(color = "County", title = paste("Active Cases Per 100,000", mydate))
 
 print(printplot)
-
+png("BBBCounties.png")
+printplot
+dev.off()
 ```
 
 
