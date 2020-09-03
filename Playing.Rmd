@@ -10,56 +10,84 @@ suppressPackageStartupMessages( require(lubridate))
 suppressPackageStartupMessages( require(ggplot2))
 suppressPackageStartupMessages( require(zoo))
 suppressPackageStartupMessages( require(gsheet))
+# suppressPackageStartupMessages( require(readxl))
 ```
 
 Load data
 
 ```{r load, echo = FALSE}
 covid19 <- read.csv("covid19.csv", stringsAsFactors = FALSE)
+# covid19 <- read_excel("covid19.xlsx", sheet = 1)
+
 county <- read.csv("censusCounties.csv", stringsAsFactors = FALSE)
-# covid19 <- gcovid19
+# covid19 = covid19[-158,]
 names(covid19)[names(covid19) == "ï..date"] <- 'date'
 covid19$date <- mdy(covid19$date)
+
+covid19 <-covid19 %>% mutate(
+  negative = Total.Tested - positive,
+  New.Positive = positive - lag(positive),
+  New.Negative = negative - lag(negative),
+  new.hospital = hospitalized - lag(hospitalized),
+  Total.Daily.Tests = Total.Tested - lag(Total.Tested),
+  New.Deaths = deaths - lag(deaths),
+  Still.Sick = positive - Recovered)
+
+rownames(covid19) <- covid19[,"date"]
 clearn <- !is.na(covid19$positive)
 clean <- covid19[clearn,]
-calculate <- with(data = clean,data.frame(
-  New.Positive = diff(positive),
-  New.Negative = diff(negative),
-  Total.Daily.Tests = diff(Total.Tested),
-  New.Deaths = diff(deaths)
-  ))
-calculate <- rbind(c(NA,NA,NA,NA), calculate)
-calculate <- cbind(date = clean$date, calculate)
+# calculate <-covid19 %>% mutate(
+#   negative = Total.Tested - positive,
+#   New.Positive = positive - lag(positive),
+#   New.Negative = negative - lag(negative),
+#   Total.Daily.Tests = Total.Tested - lag(Total.Tested),
+#   New.Deaths = deaths - lag(deaths)
+# )
+# calculate <- with(data = clean,data.frame(
+#   New.Positive = diff(positive),
+#   New.Negative = diff(negative),
+#   Total.Daily.Tests = diff(Total.Tested),
+#   New.Deaths = diff(deaths)
+#   ))
+# calculate <- rbind(c(NA,NA,NA,NA), calculate)
+# calculate <- cbind(date = clean$date, calculate)
 cdeaths <- covid19[!is.na(covid19$deaths),]
 clean <- clean %>% mutate(
   negative = Total.Tested - positive,
   Percent.Pos = positive/Total.Tested*100,
   np_7day = rollmean(New.Positive, k=7, align = "right", fill = NA),
-  New.Positive = calculate$New.Positive,
-  New.Negative = calculate$New.Negative,
-  Total.Daily.Tests = calculate$Total.Daily.Tests,
-  New.Deaths = calculate$New.Deaths,
-  New.Percent.Positive = New.Positive/Total.Daily.Tests
+  # New.Positive = calculate$New.Positive,
+  # New.Negative = calculate$New.Negative,
+  # Total.Daily.Tests = calculate$Total.Daily.Tests,
+  # New.Deaths = calculate$New.Deaths,
+  New.Percent.Positive = New.Positive/Total.Daily.Tests,
+  Percent.Hospitalized = hospitalized/Still.Sick*100
 )
 clean <- clean %>% mutate(
+  np_7day = rollmean(New.Positive, k=7, align = "right", fill = NA),
   Week.Positivity = rollapply(New.Positive, 7, FUN=sum, fill = NA),
   Week.Tests = rollapply(Total.Daily.Tests, 7, FUN=sum, fill = NA),
   Week.Positivity.Rate = Week.Positivity/Week.Tests
   )
-clean$wktot <- sapply(clean$date,function(x)sum(clean[difftime(clean$date,x,,"days") %in% 0:-6,]$New.Positive))
+clean <- clean %>% mutate(wktot = positive - lag(positive, n=7))
+# clean$wktot <- sapply(clean$date,function(x)sum(clean[difftime(clean$date,x,,"days") %in% 0:-6,]$New.Positive))
 lastrow <- nrow(clean)
 clean <- clean %>% mutate(
-  nd_7day = rollmean(deaths, k=7, fill = NA,),
-  pp_7day = rollmean(New.Percent.Positive, k=7, fill = NA))
+  nd_7day = deaths - lag(deaths, n=7), #rollmean(deaths, k=7, fill = NA,),
+  pp_7day = (positive - lag(positive, n=7))/ (Total.Tested - lag(Total.Tested, n=7))#
+    #rollmean(New.Percent.Positive, k=7, fill = NA)
+    )
 ```
 ```{r, echo = FALSE}
 today <- clean[nrow(clean),]
 day <- today$date
 new_pos <- today$New.Positive
-percent_pos <- round(today$New.Percent.Positive*100, digits = 1)
+percent_pos <- round(clean$New.Percent.Positive[nrow(clean)]*100, digits = 1)
+# percent_pos <- today$New.Percent.Positive
 percent_pos7 <- round(clean$Week.Positivity.Rate[nrow(clean)-4]*100, digits = 1)
 
-percent_hospital <- today$Percent.Hospitalized
+percent_hospital <- round(clean$Percent.Hospitalized[nrow(clean)], digits = 1)
+# percent_hospital <- clean$Percent.Hospitalized[nrow(clean)]
 ICU <- today$ICU
 percent_ICU <- round(today$ICU/today$hospitalized*100, digits = 1)
 sick <- format(today$Still.Sick, scientific = FALSE, big.mark=",")
@@ -72,20 +100,6 @@ require(pdftools)
 require(tidyverse)
 
 ######## The file name is based on the date.
-mydate <- Sys.Date() -2  # Get today's date minus 2 days
-# myprettydate <- format(mydate, format = "%d%B%Y")
-myprettydate <- format(mydate, format = "%d%b%Y")
-# pdffilename <- "https://www.homelandsecurity.iowa.gov/documents/covid-site/IA_C19_23JUL2020.pdf"
-# pdffilename <- paste("https://www.homelandsecurity.iowa.gov/documents/covid-site/IA_C19_",
-                     # myprettydate, ".pdf", sep="")
-# paste("https://idph.iowa.gov/Portals/1/userfiles/61/covid19/hospitalizations/IA_C19_",
-#                      myprettydate, ".pdf", sep="")
-# pdffilename <- paste("C:\\Users\\mariah.birgen\\Downloads\\IA_C19_",
-#                      myprettydate, ".pdf", sep="")
-# 
-#  download.file(pdffilename, 'hosp_by_county.pdf', mode="wb")
-# file.copy(pdffilename, 'hosp_by_county.pdf')
-####### The next part turns the pdf into a data table
 
 hosp_by_county <- pdf_text("hosp_by_county.pdf") %>%
     readr::read_lines() %>% 
@@ -112,7 +126,7 @@ rownames(hosp_by_county) <- hosp_by_county[,1]
 ```
 # Iowa COVID-19 Summary `r day`
 
-Today we had `r new_pos` new positive tests which is `r percent_pos`% (`r percent_pos7`% in the last week) of the tests recorded in the last 24 hours. There are `r sick` people actively sick and `r percent_hospital` (`r today$hospitalized`) are hospitalized. `r percent_ICU`% (`r ICU`) of those hospitalized are in the ICU. 
+Today we had `r new_pos` new positive tests which is `r percent_pos`% (`r percent_pos7`% in the last week) of the tests recorded in the last 24 hours. There are `r sick` people actively sick and `r percent_hospital`% (`r today$hospitalized`) are hospitalized. `r percent_ICU`% (`r ICU`) of those hospitalized are in the ICU. 
 
 ## View Data
 So, it turns out to be very difficult to find past data in the State of Iowa since they re-publish everything daily.  Here are the last 6 days of data if you are interested:
@@ -268,7 +282,7 @@ This predicts that in 14 days, Iowa will have `r predict14` infected people.
 ## SIR Model
 This should be more interesting and probably won't be done for a week. The differential equations for the SIR model are:
 
-> $\frac{dS}{dt} = -r_1SI$,
+ $\frac{dS}{dt} = -r_1SI$,
  $\frac{dR}{dt} = r_2I$, 
  $\frac{dI}{dt} = -\frac{dS}{dt} - \frac{dR}{dt}$
 

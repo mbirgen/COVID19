@@ -20,7 +20,7 @@ T = as.integer(lastrow["New.Test"])
 ```
 `r AC` active cases in Bremer County, IA today with `r H` hospitalized and `r ND` new deaths. In the last 24 hours we have had `r NP` new positive tests out of `r T` which gives us a positivity rate of `r  PR`%.
 
-More generally, in the last week, there have been `r as.integer(lastrow["Day7.Pos"])` new cases in the last week with `r as.integer(lastrow["Day7.Pos"])` recoveries. Our 7-day positivity rate is `r as.numeric(round(lastrow["Day7.Perc"]*100, digits = 2))`%. Our 14-day positivity rate is `r as.numeric(round(lastrow["Day14.Perc"]*100, digits = 2))`%.
+More generally, in the last week, there have been `r as.integer(lastrow["Day7.Pos"])` new cases in the last week with `r as.integer(lastrow["Day7.Rec"])` recoveries. Our 7-day positivity rate is `r as.numeric(round(lastrow["Day7.Perc"]*100, digits = 2))`%. Our 14-day positivity rate is `r as.numeric(round(lastrow["Day14.Perc"]*100, digits = 2))`%.
 
 ```{r, echo = FALSE, error=FALSE}
 require(reshape2)

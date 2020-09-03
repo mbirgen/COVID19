@@ -6,14 +6,18 @@ CountyData <- read.csv(filename,
 
 CountyData <- as.data.frame(CountyData) %>%
     arrange(EventResidentCounty) %>%
-    mutate(positivity = Individuals.Positive/Individuals.Tested,
-           date = as.Date(mydate))
+    mutate(Active = Individuals.Positive - Total.Recovered - Total.Deaths,
+           positivity = Individuals.Positive/Individuals.Tested,
+           date = as.Date(mydate),
+           )
 rownames(CountyData) <- CountyData[,1]
 temp <-c( EventResidentCounty = "Totals",
-          colSums(CountyData[,2:5]),
+          colSums(CountyData[,2:6]),
           positivity = NA,
           date = as.character(mydate))
-CountyData <- rbind(CountyData, Total = temp)
+temp["positivity"] = as.integer(temp["Individuals.Positive"])/as.integer(temp["Individuals.Tested"])
+CountyData["Total",] = temp
+# CountyData <- rbind(CountyData, Total = temp)
 # CountyData <-cbind(date = as.Date(mydate), CountyData)
 write.csv(CountyData, file = paste(
     'CountyData/',mydate,'CountyData.csv'))
@@ -36,13 +40,23 @@ Recovered <- read.csv( "CountyData/CountyRecovered.csv", stringsAsFactors=FALSE)
 Recovered <- Recovered[,-1]
 Deaths <- read.csv( "CountyData/CountyDeaths.csv", stringsAsFactors=FALSE)
 Deaths <- Deaths[,-1]
+Active <- read.csv( "CountyData/CountyActive.csv", stringsAsFactors=FALSE)
+Active <- Active[,-1]
+
 
 if( as.character(Tested[nrow(Tested), 1]) != mydate){
 Tested <- rbind(Tested, d_county[1,])
 Positive <- rbind(Positive, d_county[2,])
 Recovered <- rbind(Recovered, d_county[3,])
 Deaths <- rbind(Deaths, d_county[4,])
+Active <- rbind(Active, d_county[5,])
 }
+
+Tested[,-1] = sapply(Tested[,-1], as.integer)
+Positive[,-1] = sapply(Positive[,-1], as.integer)
+Recovered[,-1] = sapply(Recovered[,-1], as.integer)
+Deaths[,-1] = sapply(Deaths[,-1], as.integer)
+Active[,-1] = sapply(Active[,-1], as.integer)
 
 # Tested <- Tested[-nrow(Tested),]
 # Positive <- Positive[-nrow(Positive),]
@@ -50,43 +64,48 @@ Deaths <- rbind(Deaths, d_county[4,])
 # Deaths <- Deaths[-nrow(Deaths),]
 
 trows <- nrow(Tested)
-newTest <- as.integer(Tested[trows,-1])-as.integer(Tested[trows-1,-1])
-newPos <- as.integer(Positive[trows,-1])-as.integer(Positive[trows-1,-1])
-newRec <- as.integer(Recovered[trows,-1])-as.integer(Recovered[trows-1,-1])
-newDeath <- as.integer(Deaths[trows,-1])-as.integer(Deaths[trows-1,-1])
-PerPos7 <- as.numeric((as.integer(Positive[trows,-1])-
-                           as.integer(Positive[trows-7,-1]))/
-                          (as.integer(Tested[trows,-1])-
-                               as.integer(Tested[trows-7,-1])))
+newTest <- Tested[trows,-1]-Tested[trows-1,-1]
+newPos <- Positive[trows,-1]-Positive[trows-1,-1]
+newRec <- Recovered[trows,-1]-Recovered[trows-1,-1]
+newDeath <- Deaths[trows,-1]-Deaths[trows-1,-1]
+PerPos7 <- (Positive[trows,-1]-
+              Positive[trows-7,-1])/
+  (Tested[trows,-1]-
+     Tested[trows-7,-1])
 
 NewToday <- rbind(newTest, newPos, newRec, newDeath)
-NewToday <- rbind(Active = as.integer(Positive[trows,-1]) - 
-                      as.numeric(Recovered[trows,-1]) -
-                      as.numeric(Deaths[trows,-1]),
+NewToday <- rbind(Active = Positive[trows,-1] - 
+                    Recovered[trows,-1] -
+                    Deaths[trows,-1],
                   NewToday, PerPos = newPos/newTest,
-                    PerPos7 = PerPos7)
+                  PerPos7 = PerPos7)
+
 colnames(NewToday) <- county_names[1:101]
 
-# for(i in county_names){
-#     # county <- get(paste(i,"Data", sep=""))
-#     # temp <- CountyData[i,]
-#     # rownames(temp) <- mydate
-#     # temp <- rbind(county, temp)
-#     # assign(paste(i,"Data", sep=""), temp)
-#     rm(paste(i,"Data", sep=""))
-# }
+names_list <- CountyData[,1]
+names_list <- names_list[-75]
+names_list <- names_list[-100]
+
+per100 <- Tested[,1]
+for(i in names_list){
+  pop[i] <- county[
+    county$STATE=="Iowa"&county$COUNTY==i,][,3]
+  tempname <- gsub(" ", "." , i)
+  tempname = gsub("'",".", tempname)
+  per100 <- cbind(per100,Active[tempname]/pop[i]*100000)
+}
 
 county_names <- colnames(Tested)
 county_names <- county_names[-76]
 county_names <- gsub(" ", ".", county_names)
 for(i in 2:(length(county_names))){
-    test <- as.numeric(Tested[,i])
+    test <- Tested[,i]
     temp = length(test)
     pos <- as.numeric(Positive[,i])
     rec <- as.numeric(Recovered[,i])
     hosp <- as.integer(hospital[(nrow(hospital)-temp+1):nrow(hospital),i])
     death <- as.numeric(Deaths[,i])
-    dates <- Tested[,1]    
+    dates <- as.Date(Tested[,1]    )
     temp <- data.frame(
         date = dates,
         Tested = test,
@@ -123,13 +142,14 @@ for(i in 2:(length(county_names))){
 }
 
 # Adding more data to Bremer
+hosp <- as.integer(hospital[,"Bremer"])
 temp <- clean %>% select("date","Bremer.Positive", 
                          "Bremer.Recovered", "Bremer.Death")
 names(temp) = c("date","Positive", "Recovered", "Deaths")
 temp <- subset(temp, 
                !is.na(Positive) & date < "2020-07-31")%>% 
-  mutate(Tested = NA)
-temp2 <- BremerData %>% select("date", "Tested","Positive", "Recovered", "Deaths")
+  mutate(Tested = NA, Hospitalized = NA)
+temp2 <- BremerData %>% select("date","Hospitalized", "Tested","Positive", "Recovered", "Deaths")
 temp = rbind(temp, temp2)
 rm(temp2)
 temp <- temp  %>% 
@@ -160,35 +180,84 @@ write.csv(Tested, "CountyData/CountyTests.csv")
 write.csv(Positive, "CountyData/CountyPositive.csv")
 write.csv(Recovered, "CountyData/CountyRecovered.csv")
 write.csv(Deaths, "CountyData/CountyDeaths.csv")
+write.csv(Active, "CountyData/CountyActive.csv")
 
+#############################
+## This section is writing today's data into covid19
+#############################
+mdate = as.character(mydate)
+
+tempT  = CountyData["Total",-c(1,6)]
+tempT[1:4] <- sapply(tempT[1:4], as.numeric)
+names(tempT) = c("Total.Tested", "positive","Recovered",
+                 "deaths", "date")
+tempBr =   BremerData[nrow(BremerData),
+                      c("Positive", "Recovered","Deaths", "Active" )]
+tempBl =   Black.HawkData[nrow(Black.HawkData),
+                      c("Positive", "Recovered","Deaths", "Active" )]
+tempBu =   ButlerData[nrow(ButlerData),
+                      c("Positive", "Recovered","Deaths", "Active" )]
+names(tempBr) = c("Bremer.Positive", "Bremer.Recovered",
+                  "Bremer.Death", "Bremer.SS") 
+names(tempBu) = c("Butler.P", "Butler.R",
+                  "Butler.D", "Butler.SS") 
+names(tempBl) = c("BlackHawk.P", "BlackHawk.R",
+                  "BlackHawk.D", "BlackHawk.SS") 
+hosp = as.integer(hospital[nrow(hospital), "Totals"])
+names(hosp) = "hospitalized"
+temp = cbind(tempT, tempBr, tempBu, tempBl, hosp)
+if (covid19[nrow(covid19), "date"] != mydate){
+  covid19 <- rbind.fill(covid19, temp)
+  } else
+  {
+    for (i in names(temp)){
+      covid19[which(covid19[,"date"] == mydate),i] = temp[1,i]
+    }
+  }
+rm(temp, tempT, tempBl, tempBr, tempBu)
 ##########################
 ## This all worked fine, 
 ## except that there are way too many counties.
 ##########################
 
-names_list = c("Bremer",
-               "Black Hawk", "Butler",
-               "Fayette", "Chickasaw")
+temp = per100[23,-1]
+temp = sort(temp, decreasing = TRUE)
+names_list = names(temp[1:5])
 
-names_list = c("Winneshiek", "Bremer" )
+
 temp1 = data.frame()
 for(i in names_list){
-    
-    i1 <- gsub(" ", ".", i)
+  PC <- per100[, i]
+  dates <- Tested[,1] 
+  temp = data.frame(date = dates, PC = PC)
+  temp = temp %>% mutate(County = i)
+  temp1 = rbind(temp1, temp)
+  
+}
+# names_list = c("Bremer",
+#                "Black Hawk", "Butler",
+#                "Fayette", "Chickasaw")
+# 
+names_list = c("Plymouth")
+temp1 = data.frame()
+
+for(i in names_list){
+  i1 <- i
+    i1 <- gsub(".", " ", i)
     i1 <- gsub("'", ".", i1)
     pos <- as.numeric(Positive[,i1])
     rec <- as.numeric(Recovered[,i1])
     death <- as.numeric(Deaths[,i1])
-    dates <- Tested[,1]  
+    dates <- Tested[,1]
     temp <- data.frame(
         date = dates,
         Positive = pos,
         Recovered = rec,
         Deaths = death)
-    
+
     pop  <- county[
         county$STATE=="Iowa"&county$COUNTY==i,][,3]
-    temp <- temp %>% 
+    temp <- temp %>%
         mutate(
             Active = Positive - Recovered - Deaths,
             PC = Active/pop*100000,
