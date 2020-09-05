@@ -1,0 +1,10 @@
+name: Publish Document
+title:
+username:
+account: rpubs
+server: rpubs.com
+hostUrl: rpubs.com
+appId: https://api.rpubs.com/api/v1/document/647476/871632967f044c44af000326cafb3b34
+bundleId: https://api.rpubs.com/api/v1/document/647476/871632967f044c44af000326cafb3b34
+url: http://rpubs.com/mbirgen/647476
+when: 1597328451.74757

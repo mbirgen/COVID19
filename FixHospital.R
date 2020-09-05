@@ -1,10 +1,11 @@
 require(plyr)
 require(pdftools)
 require(tidyverse)
+require(stringr)
 
 hosp_by_county <- pdf_text("hosp_by_county.pdf") %>%
-    readr::read_lines() %>% 
-    str_squish()
+    readr::read_lines() %>% str_squish()
+# hosp_by_county <-    str_squish(hosp_by_county)
 temp <- hosp_by_county
 hosp_by_county <- temp[5:37]
 temp1 = strsplit(temp[40]," ") %>% ldply()
@@ -49,3 +50,4 @@ if(as.character(hospital[nrow(hospital),1])!= day){
     }
 
 write.csv(hospital, "CountyHospitilizations.csv")
+
