@@ -61,7 +61,7 @@ h_county <- cbind(date = c(date, h_county))
 rownames(h_county) <- colnames(hospital)
 h_county <- t(h_county)
 # rownames(h_county) <- as.character(day)
-if(as.character(hospital[nrow(hospital),1])!= day){
+if(as.character(hospital[nrow(hospital),1])!= date){
     hospital <- rbind(hospital, h_county)
 }
 
@@ -370,6 +370,8 @@ rownames(hosp_by_county) <- hosp_by_county[,1]
 # Iowa COVID-19 Summary `r day`
 
 Today we had `r new_pos` new positive tests which is `r percent_pos`% (`r percent_pos7`% in the last week) of the tests recorded in the last 24 hours. There are `r sick` people actively sick and `r percent_hospital`% (`r today$hospitalized`) are hospitalized. `r percent_ICU`% (`r ICU`) of those hospitalized are in the ICU. 
+
+Today we had 821 new positive tests which is 13.5% (15.7% in the last week) of the tests in the last 24 hours. There are 20,098 people actively sick and 1.5% (309) are hospitalized. 29.4% (91) of those hospitalized are in the ICU and 9 new deaths.
 
 ## View Data
 So, it turns out to be very difficult to find past data in the State of Iowa since they re-publish everything daily.  Here are the last 6 days of data if you are interested:

@@ -22,6 +22,10 @@ T = as.integer(lastrow["New.Test"])
 
 More generally, in the last week, there have been `r as.integer(lastrow["Day7.Pos"])` new cases in the last week with `r as.integer(lastrow["Day7.Rec"])` recoveries. Our 7-day positivity rate is `r as.numeric(round(lastrow["Day7.Perc"]*100, digits = 2))`%. Our 14-day positivity rate is `r as.numeric(round(lastrow["Day14.Perc"]*100, digits = 2))`%.
 
+
+146 active cases in Bremer County, IA today with 1 hospitalized and 0 deaths. In the last 24 hours we have had 4 new positive tests out of 29, positivity rate of 13.79%.
+
+In the last week: 82 new cases, 37 recoveries, 7-day positivity rate is 27.1%. Our 14-day rate is 23.7%.
 ```{r, echo = FALSE, error=FALSE}
 require(reshape2)
 mydate <- Sys.Date()
