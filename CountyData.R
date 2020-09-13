@@ -238,7 +238,7 @@ for(i in names_list){
 #                "Black Hawk", "Butler",
 #                "Fayette", "Chickasaw")
 # 
-names_list = c("Plymouth")
+names_list = c("Floyd")
 temp1 = data.frame()
 
 for(i in names_list){
@@ -277,3 +277,4 @@ qplot(date, PC, color = County, data = temp1,
   geom_hline(yintercept = 100, color = "purple")+
   ylab("Cases per 100,000")+
     labs(color = "County", title = "Active Cases Per 100,000")
+
