@@ -222,7 +222,7 @@ rm(temp, tempT, tempBl, tempBr, tempBu)
 
 temp = per100[23,-1]
 temp = sort(temp, decreasing = TRUE)
-names_list = names(temp[1:5])
+names_list = names(temp[1:10])
 
 
 temp1 = data.frame()
