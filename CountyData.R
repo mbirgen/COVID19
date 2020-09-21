@@ -190,7 +190,7 @@ mdate = as.character(mydate)
 tempT  = CountyData["Total",-c(1,6)]
 tempT[1:4] <- sapply(tempT[1:4], as.numeric)
 names(tempT) = c("Total.Tested", "positive","Recovered",
-                 "deaths", "date")
+                 "deaths","New.Percent.Positive", "date")
 tempBr =   BremerData[nrow(BremerData),
                       c("Positive", "Recovered","Deaths", "Active" )]
 tempBl =   Black.HawkData[nrow(Black.HawkData),
@@ -211,7 +211,7 @@ if (covid19[nrow(covid19), "date"] != mydate){
   } else
   {
     for (i in names(temp)){
-      covid19[which(covid19[,"date"] == mydate),i] = temp[1,i]
+      covid19[nrow(covid19),i] = temp[i]
     }
   }
 rm(temp, tempT, tempBl, tempBr, tempBu)
@@ -220,9 +220,9 @@ rm(temp, tempT, tempBl, tempBr, tempBu)
 ## except that there are way too many counties.
 ##########################
 
-temp = per100[23,-1]
+temp = per100[nrow(per100),-1]
 temp = sort(temp, decreasing = TRUE)
-names_list = names(temp[1:10])
+names_list = names(temp[1:5])
 
 
 temp1 = data.frame()
@@ -238,7 +238,7 @@ for(i in names_list){
 #                "Black Hawk", "Butler",
 #                "Fayette", "Chickasaw")
 # 
-names_list = c("Floyd")
+names_list = c("Woodbury")
 temp1 = data.frame()
 
 for(i in names_list){
