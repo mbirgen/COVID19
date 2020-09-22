@@ -74,6 +74,7 @@ if(mydate1== date){
 
 
 write.csv(hospital, "CountyHospitilizations.csv")
+hospital1 <- hospital
 hospital <- hospital[!is.na(hospital$Adair),]
 ```
 
@@ -183,7 +184,8 @@ for(i in 2:(length(county_names))){
     temp = length(test)
     pos <- as.numeric(Positive[,i])
     rec <- as.numeric(Recovered[,i])
-    hosp <- as.integer(hospital[(nrow(hospital)-temp+1):nrow(hospital),i])
+    hosp <- as.integer(hospital[,i])
+    hosp = c(rep(NA, length(test)-length(hosp)),hosp)
     death <- as.numeric(Deaths[,i])
     dates <- as.Date(Tested[,1]    )
     temp <- data.frame(
