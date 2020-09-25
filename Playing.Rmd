@@ -74,7 +74,6 @@ if(mydate1== date){
 
 
 write.csv(hospital, "CountyHospitilizations.csv")
-hospital1 <- hospital
 hospital <- hospital[!is.na(hospital$Adair),]
 ```
 
@@ -180,6 +179,7 @@ county_names <- colnames(Tested)
 county_names <- county_names[-76]
 county_names <- gsub(" ", ".", county_names)
 for(i in 2:(length(county_names))){
+  i = county_names[i]
     test <- Tested[,i]
     temp = length(test)
     pos <- as.numeric(Positive[,i])
@@ -218,7 +218,7 @@ for(i in 2:(length(county_names))){
             Day14.Perc = Day14.Pos/Day14.Test
         )
     
-    assign(paste(county_names[i],"Data", sep=""), temp)
+    assign(paste(i,"Data", sep=""), temp)
     # write.csv(temp, paste("CountyData/",county_names[i],
                           # "Data.csv", sep=""))
 }
@@ -288,16 +288,18 @@ covid19 <-covid19 %>% mutate(
     Week.Positivity.Rate = (positive - lag(positive, n=7))/(Total.Tested - lag(Total.Tested, n=7)),
     Percent.Hospitalized = hospitalized/Still.Sick
   )
-rownames(covid19) <- covid19[,"date"]
+#rownames(covid19) <- covid19[,"date"]
 
 #################################################
 ##  Fill in county Data in covid19
 #################################################
-tempBr =   BremerData[nrow(BremerData),
+numrows = nrow(BremerData)
+numrows1 = nrow(Black.HawkData)
+tempBr =   BremerData[numrows,
                       c("Positive", "Recovered","Deaths", "Active" )]
-tempBl =   Black.HawkData[nrow(Black.HawkData),
+tempBl =   Black.HawkData[numrows1,
                       c("Positive", "Recovered","Deaths", "Active" )]
-tempBu =   ButlerData[nrow(ButlerData),
+tempBu =   ButlerData[numrows1,
                       c("Positive", "Recovered","Deaths", "Active" )]
 names(tempBr) = c("Bremer.Positive", "Bremer.Recovered",
                   "Bremer.Death", "Bremer.SS") 
@@ -310,7 +312,7 @@ for (i in names(temp)){
       covid19[nrow(covid19),i] = temp[i]
     }
 
-write.csv(covid19, "covid19.csv")
+write.csv(covid19, "covid19.csv",row.names = FALSE)
 #################################################
 ##  Create Clean Dataset
 #################################################
