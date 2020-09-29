@@ -274,7 +274,9 @@ covid19 <- read.csv("covid19.csv", stringsAsFactors = FALSE)
 county <- read.csv("censusCounties.csv", stringsAsFactors = FALSE)
 # covid19 = covid19[-158,]
 names(covid19)[names(covid19) == "ï..date"] <- 'date'
-covid19$date <- mdy(covid19$date)
+# covid19$date <- mdy(covid19$date)
+covid19$date <- ymd(covid19$date)
+covid19$deaths = sapply(covid19$deaths, as.integer)
 
 covid19 <-covid19 %>% mutate(
   negative = Total.Tested - positive,
@@ -339,6 +341,7 @@ clean <- clean %>% mutate(
 clean <- clean %>% mutate(wktot = Week.Positivity)
 # clean$wktot <- sapply(clean$date,function(x)sum(clean[difftime(clean$date,x,,"days") %in% 0:-6,]$New.Positive))
 lastrow <- nrow(clean)
+clean$deaths = sapply(clean$deaths, as.integer)
 clean <- clean %>% mutate(
   nd_7day = deaths - lag(deaths, n=7), #rollmean(deaths, k=7, fill = NA,),
   pp_7day = (positive - lag(positive, n=7))/ (Total.Tested - lag(Total.Tested, n=7))#
@@ -394,8 +397,6 @@ IowaPop <- 3155070
 # Iowa COVID-19 Summary `r day`
 
 Today we had `r new_pos` new positive tests which is `r percent_pos`% (`r percent_pos7`% in the last week) of the tests recorded in the last 24 hours. There are `r sick` people actively sick and `r percent_hospital`% (`r today$hospitalized`) are hospitalized. `r percent_ICU`% (`r ICU`) of those hospitalized are in the ICU. 
-
-Today we had 821 new positive tests which is 13.5% (15.7% in the last week) of the tests in the last 24 hours. There are 20,098 people actively sick and 1.5% (309) are hospitalized. 29.4% (91) of those hospitalized are in the ICU and 9 new deaths.
 
 ## View Data
 So, it turns out to be very difficult to find past data in the State of Iowa since they re-publish everything daily.  Here are the last 6 days of data if you are interested:
