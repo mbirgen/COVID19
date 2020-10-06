@@ -238,12 +238,13 @@ for(i in names_list){
 #                "Black Hawk", "Butler",
 #                "Fayette", "Chickasaw")
 # 
-names_list = c("Woodbury")
+names_list = c("Bremer", "Black Hawk", "Butler",
+                              "Fayette", "Chickasaw")
 temp1 = data.frame()
 
 for(i in names_list){
   i1 <- i
-    i1 <- gsub(".", " ", i)
+    i1 <- gsub(" ", ".", i1)
     i1 <- gsub("'", ".", i1)
     pos <- as.numeric(Positive[,i1])
     rec <- as.numeric(Recovered[,i1])
