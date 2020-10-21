@@ -336,7 +336,8 @@ clean <- clean %>% mutate(
   #Week.Tests = rollapply(Total.Daily.Tests, 7, FUN=sum, fill = NA),
   Week.Positivity = positive - lag(positive, n=7),
   Week.Tests = Total.Tested - lag(Total.Tested, n=7),
-  Week.Positivity.Rate = Week.Positivity/Week.Tests
+  Week.Positivity.Rate = Week.Positivity/Week.Tests,
+  Week.Deaths = deaths - lag(deaths, n=7)
   )
 clean <- clean %>% mutate(wktot = Week.Positivity)
 # clean$wktot <- sapply(clean$date,function(x)sum(clean[difftime(clean$date,x,,"days") %in% 0:-6,]$New.Positive))
@@ -396,7 +397,7 @@ IowaPop <- 3155070
 ```
 # Iowa COVID-19 Summary `r day`
 
-Today we had `r new_pos` new positive tests which is `r percent_pos`% (`r percent_pos7`% in the last week) of the tests recorded in the last 24 hours. There are `r sick` people actively sick and `r percent_hospital`% (`r today$hospitalized`) are hospitalized. `r percent_ICU`% (`r ICU`) of those hospitalized are in the ICU. 
+Today we had `r new_pos` new positive tests which is `r percent_pos`% (`r percent_pos7`% in the last week) of the tests recorded in the last 24 hours. We have had `r clean$Week.Deaths[nrow(clean)]` deaths in the last week. There are `r sick` people actively sick and `r percent_hospital`% (`r today$hospitalized`) are hospitalized. `r percent_ICU`% (`r ICU`) of those hospitalized are in the ICU. 
 
 ## View Data
 So, it turns out to be very difficult to find past data in the State of Iowa since they re-publish everything daily.  Here are the last 6 days of data if you are interested:
