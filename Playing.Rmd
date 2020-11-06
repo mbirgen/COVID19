@@ -66,10 +66,11 @@ if(mydate1== date){
     hospital <- rbind(hospital, h_county)
 } else {
   temp <-hospital[,1]== date
-  temp1 <- (1:100)[temp][1]
+  temp1 <- (1:600)[temp][1]
   hospital[temp1,] <- h_county
   if(as.character(hospital[nrow(hospital),1]) != mydate1){
-  hospital <- rbind.fill(hospital, data.frame(Date = Sys.Date()))}
+  hospital <- rbind.fill(hospital, data.frame(Date = Sys.Date()))
+  }
 }
 
 
@@ -516,36 +517,37 @@ IowaPercent <- round(M/IowaPop*100, digits = 2)
 ```
 So, we have a quadratic model that looks like $\frac{dP}{dt}$ = `r quadratic$coefficients[1]`$P^2$ + `r quadratic$coefficients[2]`$P$ = `r r`$P(1-P/$ `r Mprint`$)$. This is looking pretty good. In particular, because $M=$ `r Mprint`, we can estimate that `r IowaPercent`% of Iowa's population will become infected.  We would like to see what that looks like for the original data. When R performs logistic modeling, it usually has binomial data and thus expects numbers that are between zero and one. We will use our estimate of $M$ to create positive counts that are a percentage of $M$. 
 ```{r, echo = FALSE}
-logisticGrowthy <- function(data, M){
-data$binomial <- data$positive/M
-mylogit <- glm(binomial ~ date, data = data, family = "binomial")
-ypredict <- predict(mylogit, list(date = data$date), type = "response")*M
-}
-clean$binomial <- clean$positive/M
-mylogit <- glm(binomial ~ date, data = clean, family = "binomial")
-ypredict <- predict(mylogit, list(date = clean$date), type = "response")*M
-#ypredict <- logisticGrowthy(clean, M)
-qplot(date, positive, data = clean) +
-  #stat_smooth(method = "lm", col = "green") +
-  geom_line(aes(y = ypredict, col = "model"), size = 1.25) 
+# 
+# logisticGrowthy <- function(data, M){
+# data$binomial <- data$positive/M
+# mylogit <- glm(binomial ~ date, data = data, family = "binomial")
+# ypredict <- predict(mylogit, list(date = data$date), type = "response")*M
+# }
+# clean$binomial <- clean$positive/M
+# mylogit <- glm(binomial ~ date, data = clean, family = "binomial")
+# ypredict <- predict(mylogit, list(date = clean$date), type = "response")*M
+# #ypredict <- logisticGrowthy(clean, M)
+# qplot(date, positive, data = clean) +
+#   #stat_smooth(method = "lm", col = "green") +
+#   geom_line(aes(y = ypredict, col = "model"), size = 1.25) 
 ```
 Okay, that looks quite good. What will it predict for the next 28 days?
 ```{r, echo=FALSE}
-ndate <-seq(as.Date("2020-03-09"),as.Date(day + 14),by = 1)
-#play <- clean %>% filter(row_number() >= (n() - 7))
-play <- clean
-ypredict2 <- predict(mylogit, list(date =ndate), type = "response")*M
-df <- data.frame(date = ndate, model = ypredict2)
-df <- merge(df, play, all = TRUE)
-predict14 <- format(round(ypredict2[length(ypredict2)], digits = 0), scientific = FALSE)
-
-ndate <-seq(as.Date("2020-03-09"),as.Date(day + 28),by = 1)
-ypredict3 <- predict(mylogit, list(date =ndate), type = "response")*M
-df2 <- data.frame(date = ndate, model = ypredict3)
-df2 <- merge(df2, play, all = TRUE)
-qplot(date, model, ylab = "Positive Cases", data = df2, geom = "smooth") + 
-  #geom_line(size = 1.25, color = "red") +
-  geom_point(aes(y=positive), shape = 8) + theme(legend.position = 'right')
+# ndate <-seq(as.Date("2020-03-09"),as.Date(day + 14),by = 1)
+# #play <- clean %>% filter(row_number() >= (n() - 7))
+# play <- clean
+# ypredict2 <- predict(mylogit, list(date =ndate), type = "response")*M
+# df <- data.frame(date = ndate, model = ypredict2)
+# df <- merge(df, play, all = TRUE)
+# predict14 <- format(round(ypredict2[length(ypredict2)], digits = 0), scientific = FALSE)
+# 
+# ndate <-seq(as.Date("2020-03-09"),as.Date(day + 28),by = 1)
+# ypredict3 <- predict(mylogit, list(date =ndate), type = "response")*M
+# df2 <- data.frame(date = ndate, model = ypredict3)
+# df2 <- merge(df2, play, all = TRUE)
+# qplot(date, model, ylab = "Positive Cases", data = df2, geom = "smooth") + 
+#   #geom_line(size = 1.25, color = "red") +
+#   geom_point(aes(y=positive), shape = 8) + theme(legend.position = 'right')
 ```
 
 This predicts that in 14 days, Iowa will have `r predict14` infected people.
