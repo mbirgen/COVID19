@@ -10,17 +10,47 @@ Welcome to the Bremer County COVID-19 Data Page.
 ## Summary
 ```{r,echo=FALSE}
 require(knitr)
-lastrow <- BremerData[nrow(BremerData),]
-AC = as.integer(lastrow["Active"])
-H = as.integer(lastrow["Hospitalized"])
-NP = as.integer(lastrow["New.Pos"])
-PR = as.numeric(round(lastrow["Frac.Pos"]*100, digits = 2))
-ND = as.integer(lastrow["New.Deaths"])
-T = as.integer(lastrow["New.Test"])
-```
-`r AC` active cases in Bremer County, IA today with `r H` hospitalized and `r ND` new deaths. In the last 24 hours we have had `r NP` new positive tests out of `r T`, a positivity rate of `r  PR`%.
+colMax <- function(data) sapply(data, max, na.rm = TRUE)
 
-In the last week: `r as.integer(lastrow["Day7.Pos"])` new cases, `r as.integer(lastrow["Day7.Rec"])` recoveries, 7-day positivity rate is `r as.numeric(round(lastrow["Day7.Perc"]*100, digits = 2))`%, 14-day positivity rate: `r as.numeric(round(lastrow["Day14.Perc"]*100, digits = 2))`%.
+Bremerlastrow <- BremerData[nrow(BremerData),]
+Black.Hawklastrow <- Black.HawkData[nrow(Black.HawkData),]
+Butlerlastrow <- ButlerData[nrow(ButlerData),]
+# AC = as.integer(lastrow["Active"])
+# H = as.integer(lastrow["Hospitalized"])
+# NP = as.integer(lastrow["New.Pos"])
+# PR = as.numeric(round(lastrow["Frac.Pos"]*100, digits = 2))
+# ND = as.integer(lastrow["New.Deaths"])
+# T = as.integer(lastrow["New.Test"])
+
+temp = data.frame(colMax(BremerData) == Bremerlastrow)
+BHtemp = data.frame(colMax(Black.HawkData) == Black.Hawklastrow)
+Butemp = data.frame(colMax(ButlerData) == Butlerlastrow)
+todaytemp = data.frame(colMax(clean) == today)
+```
+`r as.integer(Bremerlastrow$Active)` active cases `r if(temp$Active) {" (record)"}` in Bremer County, IA today with `r as.integer(Bremerlastrow["Hospitalized"])` hospitalized. 
+In the last 24 hours: `r as.integer(Bremerlastrow$New.Pos)` new positive cases`r if(temp$New.Pos) {" (record)"}`, `r as.integer(Bremerlastrow["New.Deaths"])` new death(s) and `r as.integer(Bremerlastrow$New.Test)` new people tested.
+
+In the last week: `r as.integer(Bremerlastrow["Day7.Pos"])` positives, `r as.integer(Bremerlastrow["Day7.Rec"])` recovered and `r as.integer(Bremerlastrow["Day7.Death"])` death(s).
+In the last 14 days: 
+ `r as.integer(Bremerlastrow["Day14.Pos"])` positives, `r as.integer(Bremerlastrow["Day14.Rec"])` recovered and `r as.integer(Bremerlastrow["Day14.Death"])` death(s).
+ 
+In our regional medical center for North East Iowa, there are `r as.integer(today["RMCC6.Hospitalized"])` in the hospital`r if(todaytemp$RMCC6.Hospitalized) {" (record)"}` and `r as.integer(today["RMCC6.ICU"])` in the ICU`r if(todaytemp$RMCC6.ICU) {" (record)"}`.
+ 
+ ***
+ `r as.integer(Black.Hawklastrow["Active"])` active cases`r if(BHtemp$Active) {" (record)"}` in Black Hawk County, IA today with `r as.integer(Black.Hawklastrow["Hospitalized"])` hospitalized. 
+In the last 24 hours: `r as.integer(Black.Hawklastrow["New.Pos"])` new positive cases`r if(BHtemp$New.Pos) {" (record)"}`, `r as.integer(Black.Hawklastrow["New.Deaths"])` new death(s) and `r as.integer(Black.Hawklastrow["New.Test"])` new people tested.
+
+In the last week: `r as.integer(Black.Hawklastrow["Day7.Pos"])` positives, `r as.integer(Black.Hawklastrow["Day7.Rec"])` recovered and `r as.integer(Black.Hawklastrow["Day7.Death"])` death(s).
+In the last 14 days: 
+ `r as.integer(Black.Hawklastrow["Day14.Pos"])` positives, `r as.integer(Black.Hawklastrow["Day14.Rec"])` recovered and `r as.integer(Black.Hawklastrow["Day14.Death"])` death(s).
+ 
+ ***
+ `r as.integer(Butlerlastrow["Active"])` active cases`r if(Butemp$Active) {" (record)"}` in Butler County, IA today with `r as.integer(Butlerlastrow["Hospitalized"])` hospitalized`r if(Butemp$Hospitalized) {" (record)"}`. 
+In the last 24 hours: `r as.integer(Butlerlastrow["New.Pos"])` new positive cases, `r as.integer(Butlerlastrow["New.Deaths"])` new death(s) and `r as.integer(Butlerlastrow["New.Test"])` new people tested.
+
+In the last week: `r as.integer(Butlerlastrow["Day7.Pos"])` positives, `r as.integer(Butlerlastrow["Day7.Rec"])` recovered and `r as.integer(Butlerlastrow["Day7.Death"])` death(s).
+In the last 14 days: 
+ `r as.integer(Butlerlastrow["Day14.Pos"])` positives, `r as.integer(Butlerlastrow["Day14.Rec"])` recovered and `r as.integer(Butlerlastrow["Day14.Death"])` death(s).
 
 
 ```{r, echo = FALSE, error=FALSE}

@@ -269,6 +269,8 @@ write.csv(Active, "CountyData/CountyActive.csv")
 
 
 ```{r load, echo = FALSE}
+colMax <- function(data) sapply(data, max, na.rm = TRUE)
+
 covid19 <- read.csv("covid19.csv", stringsAsFactors = FALSE)
 # covid19 <- read_excel("covid19.xlsx", sheet = 1)
 
@@ -365,6 +367,8 @@ percent_ICU <- round(today$ICU/today$hospitalized*100, digits = 1)
 sick <- format(today$Still.Sick, scientific = FALSE, big.mark=",")
 IowaPop <- 3155070
 
+maxtoday = data.frame(colMax(clean) == today)
+
 #########################################
 ####### This section downloads the hospitalization data per county. It was added July 25, 2020.
 #########################################
@@ -395,10 +399,16 @@ IowaPop <- 3155070
 # rm(temp1, temp2, temp3, hosp_by_county_df)
 # 
 # rownames(hosp_by_county) <- hosp_by_county[,1]
+
+#######################################
+## New positivity calculation ##
+#######################################
+percent_pos = round(today$X*100, digits = 1)
+
 ```
 # Iowa COVID-19 Summary `r day`
 
-Today we had `r new_pos` new positive tests which is `r percent_pos`% (`r percent_pos7`% in the last week) of the tests recorded in the last 24 hours. We have had `r clean$Week.Deaths[nrow(clean)]` deaths in the last week. There are `r sick` people actively sick and `r percent_hospital`% (`r today$hospitalized`) are hospitalized. `r percent_ICU`% (`r ICU`) of those hospitalized are in the ICU. 
+Today we had `r new_pos` new positive tests `r if(maxtoday$New.Positive) {" (record)"}` which is `r percent_pos`% (`r percent_pos7`% in the last week) of the tests recorded in the last 24 hours.  `r clean$Week.Deaths[nrow(clean)]` deaths in the last week`r if(maxtoday$Week.Deaths) {" (record)"}`. There are `r sick` people actively sick`r if(maxtoday$Still.Sick) {" (record)"}` and `r percent_hospital`% (`r today$hospitalized`) are hospitalized`r if(maxtoday$hospitalized) {" (record)"}`. `r percent_ICU`% (`r ICU`) of those hospitalized are in the ICU`r if(maxtoday$ICU) {" (record)"}`. 
 
 ## View Data
 So, it turns out to be very difficult to find past data in the State of Iowa since they re-publish everything daily.  Here are the last 6 days of data if you are interested:
