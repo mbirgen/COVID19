@@ -403,7 +403,7 @@ maxtoday = data.frame(colMax(clean) == today)
 #######################################
 ## New positivity calculation ##
 #######################################
-percent_pos = round(today$X*100, digits = 1)
+#percent_pos = round(today$X*100, digits = 1)
 
 ```
 # Iowa COVID-19 Summary `r day`
