@@ -22,13 +22,13 @@ Butlerlastrow <- ButlerData[nrow(ButlerData),]
 # ND = as.integer(lastrow["New.Deaths"])
 # T = as.integer(lastrow["New.Test"])
 
-temp = data.frame(colMax(BremerData) == Bremerlastrow)
+Brtemp = data.frame(colMax(BremerData) == Bremerlastrow)
 BHtemp = data.frame(colMax(Black.HawkData) == Black.Hawklastrow)
 Butemp = data.frame(colMax(ButlerData) == Butlerlastrow)
 todaytemp = data.frame(colMax(clean) == today)
 
 ###########Risk Calculation#####################
-groupsize = 25
+groupsize = 15
 Risk = data.frame(Bremer.Prob = Bremerlastrow$Active/Bremer_Population , Black.Hawk.Prob = Black.Hawklastrow$Active/BlackHawk_Population, Butler.Prob = Butlerlastrow$Active/Butler_Population)
 Risk = Risk %>% mutate(
   Bremer.Risk = 1-(1-Bremer.Prob*5)^groupsize,
@@ -36,8 +36,8 @@ Risk = Risk %>% mutate(
   Butler.Risk = 1-(1-Butler.Prob*5)^groupsize
   )
 ```
-`r day`: `r as.integer(Bremerlastrow$Active)` active cases `r if(temp$Active) {" (record)"}` in Bremer County, IA today with `r as.integer(Bremerlastrow["Hospitalized"])` hospitalized. If you are in a group of 25 people in Bremer County there is a `r round(Risk$Bremer.Risk*100, digits = 2)`% chance someone in the group is positive.
-In the last 24 hours: `r as.integer(Bremerlastrow$New.Pos)` new positive cases`r if(temp$New.Pos) {" (record)"}`, `r as.integer(Bremerlastrow["New.Deaths"])` new death(s) and `r as.integer(today$Bremer.Rep)` tests.
+`r day`: `r as.integer(Bremerlastrow$Active)` active cases `r if(Brtemp$Active) {" (record)"}` in Bremer County, IA today with `r as.integer(Bremerlastrow["Hospitalized"])` hospitalized. If you are in a group of `r groupsize` random people in Bremer County there is a `r round(Risk$Bremer.Risk*100, digits = 2)`% chance someone in the group is positive.
+In the last 24 hours: `r as.integer(Bremerlastrow$New.Pos)` new positive cases`r if(Brtemp$New.Pos) {" (record)"}`, `r as.integer(Bremerlastrow["New.Deaths"])` new death(s) and `r as.integer(today$Bremer.Rep)` tests.
 
 In the last week: `r as.integer(Bremerlastrow["Day7.Pos"])` positives, `r as.integer(Bremerlastrow["Day7.Rec"])` recovered and `r as.integer(Bremerlastrow["Day7.Death"])` death(s). 7 day positivity rate is `r as.integer(today$Bremer.7Day*100)`%.
 
@@ -47,7 +47,7 @@ In the last 14 days:
 In our regional medical center for North East Iowa, there are `r as.integer(today["RMCC6.Hospitalized"])` in the hospital`r if(todaytemp$RMCC6.Hospitalized) {" (record)"}` and `r as.integer(today["RMCC6.ICU"])` in the ICU`r if(todaytemp$RMCC6.ICU) {" (record)"}`.
  
  ***
- `r as.integer(Black.Hawklastrow["Active"])` active cases`r if(BHtemp$Active) {" (record)"}` in Black Hawk County, IA today with `r as.integer(Black.Hawklastrow["Hospitalized"])` hospitalized. If you are in a group of 25 people in Black Hawk County there is a `r round(Risk$Black.Hawk.Risk*100, digits = 2)`% chance someone in the group is positive.
+ `r as.integer(Black.Hawklastrow["Active"])` active cases`r if(BHtemp$Active) {" (record)"}` in Black Hawk County, IA today with `r as.integer(Black.Hawklastrow["Hospitalized"])` hospitalized. If you are in a group of `r groupsize` people in Black Hawk County there is a `r round(Risk$Black.Hawk.Risk*100, digits = 2)`% chance someone in the group is positive.
 In the last 24 hours: `r as.integer(Black.Hawklastrow["New.Pos"])` new positive cases`r if(BHtemp$New.Pos) {" (record)"}`, `r as.integer(Black.Hawklastrow["New.Deaths"])` new death(s) and `r as.integer(Black.Hawklastrow["New.Test"])` new people tested.
 
 In the last week: `r as.integer(Black.Hawklastrow["Day7.Pos"])` positives, `r as.integer(Black.Hawklastrow["Day7.Rec"])` recovered and `r as.integer(Black.Hawklastrow["Day7.Death"])` death(s). 7 day positivity rate is `r as.integer(today$Black.Hawk.7Day*100)`%.
@@ -56,7 +56,7 @@ In the last 14 days:
  `r as.integer(Black.Hawklastrow["Day14.Pos"])` positives, `r as.integer(Black.Hawklastrow["Day14.Rec"])` recovered and `r as.integer(Black.Hawklastrow["Day14.Death"])` death(s).
  
  ***
- `r as.integer(Butlerlastrow["Active"])` active cases`r if(Butemp$Active) {" (record)"}` in Butler County, IA today with `r as.integer(Butlerlastrow["Hospitalized"])` hospitalized`r if(Butemp$Hospitalized) {" (record)"}`. If you are in a group of 25 people in Butler County there is a `r round(Risk$Butler.Risk*100, digits = 2)`% chance someone in the group is positive.
+ `r as.integer(Butlerlastrow["Active"])` active cases`r if(Butemp$Active) {" (record)"}` in Butler County, IA today with `r as.integer(Butlerlastrow["Hospitalized"])` hospitalized`r if(Butemp$Hospitalized) {" (record)"}`. If you are in a group of `r groupsize` people in Butler County there is a `r round(Risk$Butler.Risk*100, digits = 2)`% chance someone in the group is positive.
 In the last 24 hours: `r as.integer(Butlerlastrow["New.Pos"])` new positive cases, `r as.integer(Butlerlastrow["New.Deaths"])` new death(s) and `r as.integer(Butlerlastrow["New.Test"])` new people tested.
 
 In the last week: `r as.integer(Butlerlastrow["Day7.Pos"])` positives, `r as.integer(Butlerlastrow["Day7.Rec"])` recovered and `r as.integer(Butlerlastrow["Day7.Death"])` death(s). 7 day positivity rate is `r as.integer(today$Butler.7Day*100)`%.
