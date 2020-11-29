@@ -1,5 +1,0 @@
-https://coronavirus.iowa.gov/#CurrentStatus
-https://coronavirus.iowa.gov/pages/rmcc-data
-https://coronavirus.iowa.gov/pages/case-counts
-https://coronavirus.iowa.gov/pages/outcome-analysis-recovered
-https://coronavirus.iowa.gov/pages/outcome-analysis-deaths

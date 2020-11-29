@@ -36,7 +36,7 @@ Risk = Risk %>% mutate(
   Butler.Risk = 1-(1-Butler.Prob*5)^groupsize
   )
 ```
-`r day`: `r as.integer(Bremerlastrow$Active)` active cases `r if(Brtemp$Active) {" (record)"}` in Bremer County, IA today with `r as.integer(Bremerlastrow["Hospitalized"])` hospitalized. If you are in a group of `r groupsize` random people in Bremer County there is a `r round(Risk$Bremer.Risk*100, digits = 2)`% chance someone in the group is positive.
+`r day`: `r as.integer(Bremerlastrow$Active)` active cases `r if(Brtemp$Active) {" (record)"}` in Bremer County, IA today with `r as.integer(Bremerlastrow["Hospitalized"])` hospitalized`r if(Brtemp$Hospitalized) {" (record)"}`. If you are in a group of `r groupsize` random people in Bremer County there is a `r round(Risk$Bremer.Risk*100, digits = 2)`% chance someone in the group is positive.
 In the last 24 hours: `r as.integer(Bremerlastrow$New.Pos)` new positive cases`r if(Brtemp$New.Pos) {" (record)"}`, `r as.integer(Bremerlastrow["New.Deaths"])` new death(s) and `r as.integer(today$Bremer.Rep)` tests.
 
 In the last week: `r as.integer(Bremerlastrow["Day7.Pos"])` positives, `r as.integer(Bremerlastrow["Day7.Rec"])` recovered and `r as.integer(Bremerlastrow["Day7.Death"])` death(s). 7 day positivity rate is `r as.integer(today$Bremer.7Day*100)`%.
