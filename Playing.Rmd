@@ -340,7 +340,11 @@ clean <- clean %>% mutate(
   Week.Positivity = positive - lag(positive, n=7),
   Week.Tests = Total.Tested - lag(Total.Tested, n=7),
   Week.Positivity.Rate = Week.Positivity/Week.Tests,
-  Week.Deaths = deaths - lag(deaths, n=7)
+  Week.Deaths = deaths - lag(deaths, n=7),
+  Day.Total.Tests = Total.Tests - lag(Total.Tests,n=1),
+  Day.Positive.Tests = Positive.Tests - lag(Positive.Tests, n=1),
+  Day.Bremer.Total.Tests = Bremer.Total.Tests - lag(Bremer.Total.Tests,n=1),
+  Day.Bremer.Positive.Tests = Bremer.Positive.Tests - lag(Bremer.Positive.Tests, n=1),
   )
 clean <- clean %>% mutate(wktot = Week.Positivity)
 # clean$wktot <- sapply(clean$date,function(x)sum(clean[difftime(clean$date,x,,"days") %in% 0:-6,]$New.Positive))
@@ -408,7 +412,7 @@ maxtoday = data.frame(colMax(clean) == today)
 ```
 # Iowa COVID-19 Summary `r day`
 
-Today we had `r new_pos` new positive tests `r if(maxtoday$New.Positive) {" (record)"}` which is `r percent_pos`% (`r percent_pos7`% in the last week) of the tests recorded in the last 24 hours.  `r clean$Week.Deaths[nrow(clean)]` deaths in the last week`r if(maxtoday$Week.Deaths) {" (record)"}`. There are `r sick` people actively sick`r if(maxtoday$Still.Sick) {" (record)"}` and `r percent_hospital`% (`r today$hospitalized`) are hospitalized`r if(maxtoday$hospitalized) {" (record)"}`. `r percent_ICU`% (`r ICU`) of those hospitalized are in the ICU`r if(maxtoday$ICU) {" (record)"}`. 
+Today we had `r new_pos` new positive patients `r if(maxtoday$New.Positive) {" (record)"}` which is `r percent_pos`% (`r percent_pos7`% in the last week) of the newly tested people recorded in the last 24 hours.  `r clean$Week.Deaths[nrow(clean)]` deaths in the last week`r if(maxtoday$Week.Deaths) {" (record)"}`. There are `r sick` people actively sick`r if(maxtoday$Still.Sick) {" (record)"}` and `r percent_hospital`% (`r today$hospitalized`) are hospitalized`r if(maxtoday$hospitalized) {" (record)"}`. `r percent_ICU`% (`r ICU`) of those hospitalized are in the ICU`r if(maxtoday$ICU) {" (record)"}`. 
 
 ## View Data
 So, it turns out to be very difficult to find past data in the State of Iowa since they re-publish everything daily.  Here are the last 6 days of data if you are interested:
