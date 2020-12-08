@@ -146,7 +146,7 @@ hosp <- as.integer(hospital[,"Bremer"])
 temp <- clean %>% select("date","Bremer.Positive", 
                          "Bremer.Recovered", "Bremer.Death")
 names(temp) = c("date","Positive", "Recovered", "Deaths")
-temp <- subset(temp, 
+temp1<- subset(temp, 
                !is.na(Positive) & date < "2020-07-31")%>% 
   mutate(Tested = NA, Hospitalized = NA)
 temp2 <- BremerData %>% select("date","Hospitalized", "Tested","Positive", "Recovered", "Deaths")
@@ -278,4 +278,8 @@ qplot(date, PC, color = County, data = temp1,
   geom_hline(yintercept = 100, color = "purple")+
   ylab("Cases per 100,000")+
     labs(color = "County", title = "Active Cases Per 100,000")
+##########################################################
 
+BremerData = BremerData %>% mutate(
+  Not.Sick = (lag(Positive, n= 10) - lag(Positive, n=28))*0.7,
+  True.Active = Positive - Recovered - Deaths - round(Not.Sick, digits = 0))
