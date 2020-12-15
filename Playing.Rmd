@@ -193,16 +193,16 @@ PerPos7 <- (Positive[trows,-1]-
   (Tested[trows,-1]-
      Tested[trows-7,-1])
 
-NewToday <- rbind(newTest, newPos, newRec, newDeath)
-NewToday <- rbind(Active = Positive[trows,-1] -
-                    Recovered[trows,-1] -
-                    Deaths[trows,-1],
-                  NewToday, PerPos = newPos/newTest,
-                  PerPos7 = PerPos7)
+# NewToday <- rbind(newTest, newPos, newRec, newDeath)
+# NewToday <- rbind(Active = Positive[trows,-1] -
+#                     Recovered[trows,-1] -
+#                     Deaths[trows,-1],
+#                   NewToday, PerPos = newPos/newTest,
+#                   PerPos7 = PerPos7)
+# 
+# colnames(NewToday) <- county_names[1:101]
 
-colnames(NewToday) <- county_names[1:101]
-
-names_list <- CountyData[,2]
+names_list <- CountyData[-1,2]
 names_list <- names_list[-75]
 names_list <- names_list[-100]
 
