@@ -112,7 +112,7 @@ mydate <- Sys.Date()
 # temp["positivity"] = as.integer(temp["Individuals.Positive"])/as.integer(temp["Individuals.Tested"])
 # CountyData[101,] = temp
 
-filename <- "C:\\Users\\mariah.birgen\\Downloads\\Summary.csv"
+# filename <- "C:\\Users\\mariah.birgen\\Downloads\\Summary.csv"
 filename <- "Summary.csv"
 CountyData <- read.csv(filename,
                        stringsAsFactors = FALSE)
@@ -123,6 +123,9 @@ CountyData <- as.data.frame(CountyData) %>%
            positivity = Individuals.Positive/Individuals.Tested,
            date = as.Date(mydate),
            )
+if(CountyData[1,1]== ""){
+  CountyData = CountyData[-1,]
+}
 rownames(CountyData) <- CountyData[,1]
 temp <-c( County = "Totals",
           colSums(CountyData[,2:8]),
@@ -162,13 +165,14 @@ Deaths <- read.csv( "CountyData/CountyDeaths.csv", stringsAsFactors=FALSE)
 Deaths <- Deaths[,-1]
 Active <- read.csv( "CountyData/CountyActive.csv", stringsAsFactors=FALSE)
 Active <- Active[,-1]
+templist = c("Tested", "Positive", "Recovered", "Deaths", "Active" )
 
 
 if( as.character(Tested[nrow(Tested), 1]) != mydate){
 Tested <- rbind(Tested, d_county["Individuals.Tested",])
 Positive <- rbind(Positive, d_county["Individuals.Positive",])
 Recovered <- rbind(Recovered, d_county["Total.Recovered",])
-Deaths <- rbind(Deaths, d_county["Total.Deaths",-1])
+Deaths <- rbind(Deaths, d_county["Total.Deaths",])
 Active <- rbind(Active, d_county["Active",])
 }
 
@@ -202,7 +206,7 @@ PerPos7 <- (Positive[trows,-1]-
 # 
 # colnames(NewToday) <- county_names[1:101]
 
-names_list <- CountyData[-1,2]
+names_list <- CountyData[,2]
 names_list <- names_list[-75]
 names_list <- names_list[-100]
 
@@ -304,7 +308,9 @@ temp <- temp  %>%
             True.Active = Positive - Recovered -
               Deaths - round(Not.Sick, digits = 0)
   )
+
 BremerData = temp
+rm(temp)
 write.csv(BremerData, "CountyData/BremerData.csv")
 
 write.csv(Tested, "CountyData/CountyTests.csv")
