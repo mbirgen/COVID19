@@ -5,7 +5,8 @@ output: html_notebook
 ---
 
 ```{r initialization, echo=FALSE}
-suppressPackageStartupMessages( require(dplyr))
+suppressPackageStartupMessages( 
+  require(dplyr))
 suppressPackageStartupMessages( require(lubridate))
 suppressPackageStartupMessages( require(ggplot2))
 suppressPackageStartupMessages( require(zoo))
@@ -873,4 +874,35 @@ qplot(date, New.Positive, data = clean, geom = c("point", "smooth")) +
 As of about the middle of May, it becomes clear that the new positive data is not exponential. Which is really good news. This is when this model gets downgraded to the Alternative Modeling section.
 For the model $new positives = e^{k date}$, $k=$ `r model4$coefficients[2]`. 
 Estimated time for new positives to double is `r np_doubling_time` days.
+
+```{r}
+Summary <- pdf_text("Iowa COVID-19 Information - access.pdf") %>%
+    readr::read_lines() %>% str_squish()
+# temp1 = strsplit(Summary[1]," ") %>% ldply()
+temp1 = Summary[6] %>% ldply()
+date = as.character(mdy(temp1[1]))
+
+Summary <- str_remove_all(Summary, " Translate") %>% 
+    str_remove_all("Translate")
+###############################################
+temp =Summary[-(22:25)]
+SummaryNames = temp[seq(7,37,2)]
+SummaryData = temp[seq(8,38,2)] %>% 
+    str_remove_all(",") %>%
+    as.integer()
+SummaryData = data.frame(SummaryData, 
+                         row.names = SummaryNames) %>%
+    t()
+SummaryData <- cbind("Date"=date,SummaryData)
+rownames(SummaryData) = date
+temp <- read.csv("SummaryData.csv",
+         stringsAsFactors = FALSE) %>% as.data.frame()
+# rownames(temp) = temp[,1]
+colnames(SummaryData) = names(temp)
+temp <- rbind(temp, SummaryData) 
+write.csv(temp, file = "SummaryData.csv", row.names = FALSE)
+rm(temp, temp1)
+
+rm(temp, tempBH, tempBl, tempBu, tempT, tempy)
+```
 
