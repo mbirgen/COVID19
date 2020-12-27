@@ -903,6 +903,5 @@ temp <- rbind(temp, SummaryData)
 write.csv(temp, file = "SummaryData.csv", row.names = FALSE)
 rm(temp, temp1)
 
-rm(temp, tempBH, tempBl, tempBu, tempT, tempy)
 ```
 
