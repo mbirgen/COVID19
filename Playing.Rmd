@@ -432,9 +432,6 @@ clean = clean %>% mutate(
   Bremer.Rep = Bremer.Individuals.Tested - lag(Bremer.Individuals.Postive))
 
 maxtoday = data.frame(colMax(clean) == today)
-
-
-
 ```
 # Iowa COVID-19 Summary `r day`
 
