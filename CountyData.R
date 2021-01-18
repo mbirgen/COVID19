@@ -240,6 +240,8 @@ for(i in names_list){
 # 
 names_list = c("Bremer", "Black Hawk", "Butler",
                               "Fayette", "Chickasaw")
+names_list = c("Winneshiek", "Chickasaw", "Fayette",
+               "Allamakee", "Howard")
 temp1 = data.frame()
 
 for(i in names_list){
@@ -255,6 +257,8 @@ for(i in names_list){
         Positive = pos,
         Recovered = rec,
         Deaths = death)
+    n = nrow(temp) -90
+    temp = temp[-(1:n),]
 
     pop  <- county[
         county$STATE=="Iowa"&county$COUNTY==i,][,3]

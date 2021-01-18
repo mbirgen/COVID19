@@ -1,6 +1,7 @@
 Summary <- pdf_text("Iowa COVID-19 Information - access.pdf") %>%
     readr::read_lines() %>% str_squish()
-temp1 = strsplit(Summary[1]," ") %>% ldply()
+# temp1 = strsplit(Summary[1]," ") %>% ldply()
+temp1 = Summary[6] %>% ldply()
 date = as.character(mdy(temp1[1]))
 
 Summary <- str_remove_all(Summary, " Translate") %>% 
@@ -47,7 +48,7 @@ rownames(SummaryData) = date
 temp <- read.csv("SummaryData.csv",
          stringsAsFactors = FALSE) %>% as.data.frame()
 # rownames(temp) = temp[,1]
-colnames(SummaryData) = names(temp[,-1])
+colnames(SummaryData) = names(temp)
 temp <- rbind(temp, SummaryData) 
 write.csv(temp, file = "SummaryData.csv", row.names = FALSE)
-rm(temp)
+rm(temp, temp1)
