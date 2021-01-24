@@ -271,7 +271,6 @@ for(i in 2:(length(county_names))){
     # write.csv(temp, paste("CountyData/",county_names[i],
                           # "Data.csv", sep=""))
 }
-
 # Adding more data to Bremer
 hosp <- as.integer(hospital[,"Bremer"])
 temp <- clean %>% select("date","Bremer.Positive", 
