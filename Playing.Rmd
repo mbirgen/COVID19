@@ -114,6 +114,10 @@ mydate <- Sys.Date()
 # CountyData[101,] = temp
 
 # filename <- "C:\\Users\\mariah.birgen\\Downloads\\Summary.csv"
+filename <- "censusCounties.csv"
+county <- read.csv(filename,
+                       stringsAsFactors = FALSE)
+
 filename <- "Summary.csv"
 CountyData <- read.csv(filename,
                        stringsAsFactors = FALSE)
@@ -210,6 +214,7 @@ PerPos7 <- (Positive[trows,-1]-
 names_list <- CountyData[,2]
 names_list <- names_list[-75]
 names_list <- names_list[-100]
+pop <- c(1:99)
 
 per100 <- Tested[,1]
 for(i in names_list){
@@ -584,9 +589,11 @@ Okay, that looks quite good. What will it predict for the next 28 days?
 # qplot(date, model, ylab = "Positive Cases", data = df2, geom = "smooth") + 
 #   #geom_line(size = 1.25, color = "red") +
 #   geom_point(aes(y=positive), shape = 8) + theme(legend.position = 'right')
+
+# 
+# This predicts that in 14 days, Iowa will have `r predict14` infected people.
 ```
 
-This predicts that in 14 days, Iowa will have `r predict14` infected people.
 
 ## SIR Model
 This should be more interesting and probably won't be done for a week. The differential equations for the SIR model are:
@@ -763,13 +770,13 @@ ggplot(B, aes(date, y = value, color = variable)) +
 
 At the beginning, we were modeling the new positive data as an exponential curve. As of about the middle of May we changed to use the logistic growth curve from the Logistic Model to predict new positive tests.
 ```{r, echo = FALSE}
-npPredict <- diff(ypredict2,1,1)
-templength <- length(clean$New.Positive)
-npPredict <- npPredict[1:templength]
-qplot(date, New.Positive, data = clean, geom = c("point", "smooth")) +
-  #stat_smooth(method = "lm", col = "green") +
-  geom_line(aes(y = npPredict, col = "model")) + 
-  geom_line(aes(y=np_7day, col = "7 day average"), size = 1.25)
+# npPredict <- diff(ypredict2,1,1)
+# templength <- length(clean$New.Positive)
+# npPredict <- npPredict[1:templength]
+# qplot(date, New.Positive, data = clean, geom = c("point", "smooth")) +
+#   #stat_smooth(method = "lm", col = "green") +
+#   geom_line(aes(y = npPredict, col = "model")) + 
+#   geom_line(aes(y=np_7day, col = "7 day average"), size = 1.25)
   
 ```
 
