@@ -439,7 +439,7 @@ maxtoday = data.frame(colMax(clean) == today)
 ```
 # Iowa COVID-19 Summary `r day`
 
-Today we had `r new_pos` new positive patients `r if(maxtoday$New.Positive) {" (record)"}` which is `r percent_pos`% (`r percent_pos7`% in the last week) of the newly tested people recorded in the last 24 hours.  `r clean$Week.Deaths[nrow(clean)]` deaths in the last week`r if(maxtoday$Week.Deaths) {" (record)"}`. There are `r sick` people actively sick`r if(maxtoday$Still.Sick) {" (record)"}` and `r percent_hospital`% (`r today$hospitalized`) are hospitalized`r if(maxtoday$hospitalized) {" (record)"}`. `r percent_ICU`% (`r ICU`) of those hospitalized are in the ICU`r if(maxtoday$ICU) {" (record)"}`. 
+Today we had `r new_pos` new positive patients `r if(maxtoday$New.Positive) {" (record)"}` which is `r percent_pos`% (`r percent_pos7`% in the last week) of the newly tested people recorded in the last 24 hours.  `r clean$Week.Deaths[nrow(clean)]` deaths in the last week`r if(maxtoday$Week.Deaths) {" (record)"}`. One in `r round(IowaPop/clean[nrow(clean),]$deaths, digits = 0)` people in Iowa has died of COVID-19. There are `r sick` people actively sick`r if(maxtoday$Still.Sick) {" (record)"}` and `r percent_hospital`% (`r today$hospitalized`) are hospitalized`r if(maxtoday$hospitalized) {" (record)"}`. `r percent_ICU`% (`r ICU`) of those hospitalized are in the ICU`r if(maxtoday$ICU) {" (record)"}`. 
 
 ## View Data
 So, it turns out to be very difficult to find past data in the State of Iowa since they re-publish everything daily.  Here are the last 6 days of data if you are interested:
@@ -811,21 +811,21 @@ This section stores predictions.
 predictions <- as.data.frame(read.csv("Predictions.csv"))
 predictions <- predictions[,-1]
 predictions$date <- as.Date(predictions$date)
-list <- data.frame(date = day,
-          PositiveDoubling = positive_doubling_time,
-          latePositiveDoubling = positive_doubling_time2,
-          DeathDoubling = death_doubling_time,
-          LateDeathDoubling = death_doubling_time2,
-          NewPositiveDoubling = np_doubling_time,
-          LogisticR = r,
-          LogisticM = M,
-          FourteenDayPrediction = predict14
-          )
-list$date <- as.Date(list$date)
-rownames(list) <- c()
-if(as.character(predictions[nrow(predictions),1])!= day){
-  predictions = rbind(predictions, list)
-}
+# list <- data.frame(date = day,
+#           PositiveDoubling = positive_doubling_time,
+#           latePositiveDoubling = positive_doubling_time2,
+#           DeathDoubling = death_doubling_time,
+#           LateDeathDoubling = death_doubling_time2,
+#           NewPositiveDoubling = np_doubling_time,
+#           LogisticR = r,
+#           LogisticM = M,
+#           FourteenDayPrediction = predict14
+#           )
+# list$date <- as.Date(list$date)
+# rownames(list) <- c()
+# if(as.character(predictions[nrow(predictions),1])!= day){
+#   predictions = rbind(predictions, list)
+# }
 # hospital <- as.data.frame(read.csv("CountyHospitilizations.csv"))
 # hospital <- hospital[,-1]
 # h_county <-  t(hosp_by_county[,2])
