@@ -11,6 +11,9 @@ Welcome to the Bremer County COVID-19 Data Page.
 ```{r,echo=FALSE}
 require(knitr)
 colMax <- function(data) sapply(data, max, na.rm = TRUE)
+Bremer_Population <- county[county$COUNTY=="Bremer",][,3]
+Butler_Population <- county[county$STATE=="Iowa"&county$COUNTY=="Butler",][,3]
+BlackHawk_Population <- county[county$STATE=="Iowa"&county$COUNTY=="Black Hawk",][,3]
 
 Bremerlastrow <- BremerData[nrow(BremerData),]
 Black.Hawklastrow <- Black.HawkData[nrow(Black.HawkData),]
@@ -25,7 +28,7 @@ Butlerlastrow <- ButlerData[nrow(ButlerData),]
 Brtemp = data.frame(colMax(BremerData) == Bremerlastrow)
 BHtemp = data.frame(colMax(Black.HawkData) == Black.Hawklastrow)
 Butemp = data.frame(colMax(ButlerData) == Butlerlastrow)
-todaytemp = data.frame(colMax(clean) == today)
+todaytemp = data.frame(colMax(clean[,-1]) == today[,-1])
 
 ###########Risk Calculation#####################
 groupsize = 15
