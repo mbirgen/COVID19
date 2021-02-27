@@ -432,17 +432,19 @@ Today we had `r new_pos` new positive patients `r if(maxtoday$New.Positive) {" (
 
 #Print Graphs
 
- ```{r, echo=FALSE}
+```{r}
 pactive <- qplot(date, Still.Sick, data = clean[-(1:23),], geom = c("point", "smooth")) +
 ggtitle("Known Active COVID-19 Cases in Iowa")
 png(paste(day,"pactive.png"))
 pactive
 dev.off()
  pactive
- ```
+```
+
+
 
  ## Percent Positive Active Cases
- ```{r,echo=False}
+```{r,echo=False}
 
  ppositive <-qplot(date, New.Percent.Positive, data = clean[-(1:7),], geom = c("point", "smooth")) + ylab("Fraction Positive") +
  ggtitle("Fraction of Positive COVID-19 Tests in Iowa")
@@ -458,22 +460,21 @@ dev.off()
  p7positive
  dev.off()
  p7positive
- ```
+```
 
 
  ## Bremer County
  I started recording daily data on Bremer county on May 29, 2020. There will be problems with the recovered data since I have yet to get tables of data for the county and the definition of recovered changed on June 30. Thus, the following graph omits that data.
- ```{r, echo=FALSE}
+```{r, echo=FALSE}
  State_Average_Active <- today$Still.Sick/IowaPop*100000
  Bremer_Population <- county[county$COUNTY=="Bremer",][,3]
  Butler_Population <- county[county$STATE=="Iowa"&county$COUNTY=="Butler",][,3]
  BlackHawk_Population <- county[county$STATE=="Iowa"&county$COUNTY=="Black Hawk",][,3]
  pBremer <-qplot(date,
-                 Bremer.SS/Bremer_Population*100000,
+                 #Butler.SS/Butler_Population*100000,
                  Bremer.SS,
-                 data = clean[-(1:71),], geom = c("point", "smooth")) +
-   ggtitle(
- "Known Active COVID-19 Cases in Bremer County Per 100,000 People")
+                 data = clean[-(1:116),], geom = c("point", "smooth")) +
+   ggtitle("Known Active COVID-19 Cases in Bremer County")
  #    "Known Active COVID-19 Cases in Bremer County")
  #+  geom_hline(aes(yintercept=State_Average_Active)
  pButler <-qplot(date,
@@ -488,12 +489,10 @@ ggtitle("Known Active COVID-19 Cases in Butler County Per 100,000 People")
  dev.off()
  pButler
  pBlackHawk <-qplot(date,
-               BlackHawk.SS,
-               BlackHawk.SS/BlackHawk_Population*100000,
-               data = clean[-(1:116),], geom = c("point", "smooth")) +
+                 #Butler.SS/Butler_Population*100000,
+                 BlackHawk.SS,
+                 data = clean[-(1:116),], geom = c("point", "smooth")) +
    ggtitle("Known Active COVID-19 Cases in Black Hawk County")
- #ggtitle("Known Active COVID-19 Cases in Black Hawk County Per 100,000 People")
- #+  geom_hline(aes(yintercept=State_Average_Active)
  png(paste(day,"pBlackHawk.png"))
  pBlackHawk
  dev.off()
@@ -506,4 +505,4 @@ ggtitle("Known Active COVID-19 Cases in Butler County Per 100,000 People")
 
  day7pos.Bremer <- round(
    BremerData[nrow(BremerData), ncol(BremerData)]*100, digits=1)
- ```
+```
