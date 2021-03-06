@@ -174,6 +174,11 @@ Active <- read.csv( "CountyData/CountyActive.csv", stringsAsFactors=FALSE)
 Active <- Active[,-1]
 templist = c("Tested", "Positive", "Recovered", "Deaths", "Active" )
 
+# Tested <- Tested[-nrow(Tested),]
+# Positive <- Positive[-nrow(Positive),]
+# Recovered <- Recovered[-nrow(Recovered),]
+# Deaths <- Deaths[-nrow(Deaths),]
+
 
 if( as.character(Tested[nrow(Tested), 1]) != mydate){
 Tested <- rbind(Tested, d_county["Individuals.Tested",])

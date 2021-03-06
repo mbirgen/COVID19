@@ -79,7 +79,7 @@ temp = clean[,c("date","Bremer.SS", "Butler.SS", "BlackHawk.SS")]
 temp = temp %>% mutate(Bremer = Bremer.SS/Bremer_Population*100000,
                        Butler = Butler.SS/Butler_Population* 100000,
                        BlackHawk = BlackHawk.SS/BlackHawk_Population * 100000)
-temp = temp[-(1:126),]
+temp = temp[-(1:(nrow(temp)-100)),]
 mtemp = melt(temp, id.vars = "date", 
              measure.vars = c('Bremer', 'Butler', 'BlackHawk'))
 printplot <- qplot(date, value, color = variable, data = mtemp, geom = c("point", "smooth")) +
