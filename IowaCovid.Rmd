@@ -74,6 +74,7 @@ hospital <- hospital[!is.na(hospital$Adair),]
 ```
 
 ```{r}
+mydate <- Sys.Date()
 Summary <- pdf_text("Iowa COVID-19 Information - access.pdf") %>%
     readr::read_lines() %>% str_squish()
 # temp1 = strsplit(Summary[1]," ") %>% ldply()
