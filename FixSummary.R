@@ -28,7 +28,7 @@ CountyDataOld <- as.data.frame(CountyDataOld) %>%
 temp <-c(County = "Totals",
           colSums(CountyDataOld[,2:6]),
           positivity = NA,
-          date = as.character(mydate))
+          date = as.character(date))
 temp["positivity"] = as.integer(temp["Individuals.Positive"])/as.integer(temp["Individuals.Tested"])
 CountyDataOld[101,] = temp
 
@@ -54,13 +54,13 @@ write.csv(temp, file = "SummaryData.csv", row.names = FALSE)
 rm(temp, temp1)
 
 ###################################################
-d_county <- t(CountyData[,-1])
-county_names <- d_county[1,]
-colnames(d_county) <- d_county[1,]
-d_county = d_county[-1,]
+d_county <- t(CountyDataOld[,-1])
+county_names <- CountyDataOld[,1]
+colnames(d_county) <- county_names
+# d_county = d_county[-1,]
 # colnames(d_county)[1] <- "date"
-d_county[-9,] = sapply(d_county[-9,], as.integer)
-d_county[9,] = sapply(d_county[9,], as.numeric)
+d_county[1:5,] = sapply(d_county[1:5,], as.integer)
+d_county[6,] = sapply(d_county[6,], as.numeric)
 # d_county <- as.data.frame(d_county)%>%
 #     mutate(Total = Reduce(`+`, .))
-d_county <- cbind(date=as.character(mydate),d_county)
+d_county <- cbind(date=as.character(date),d_county)
