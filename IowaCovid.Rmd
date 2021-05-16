@@ -434,7 +434,9 @@ maxtoday = data.frame(colMax(clean[,-1]) == today[,-1])
 ```
 # Iowa COVID-19 Summary `r day`
 
-Today we had `r new_pos` new positive patients `r if(maxtoday$New.Positive) {" (record)"}` which is `r percent_pos`% (`r percent_pos7`% in the last week) of the newly tested people recorded in the last 24 hours.  `r clean$Week.Deaths[nrow(clean)]` deaths in the last week`r if(maxtoday$Week.Deaths) {" (record)"}`. One in `r round(IowaPop/clean[nrow(clean),]$deaths, digits = 0)` people in Iowa has died of COVID-19. There are `r sick` people actively sick`r if(maxtoday$Still.Sick) {" (record)"}` and `r percent_hospital`% (`r today$hospitalized`) are hospitalized`r if(maxtoday$hospitalized) {" (record)"}`. `r percent_ICU`% (`r ICU`) of those hospitalized are in the ICU`r if(maxtoday$ICU) {" (record)"}`. 
+Today we had `r new_pos` new positive patients `r if(maxtoday$New.Positive) {" (record)"}` which is `r percent_pos`% (`r percent_pos7`% in the last week) of the newly tested people recorded in the last 24 hours.  `r clean$Week.Deaths[nrow(clean)]` deaths in the last week`r if(maxtoday$Week.Deaths) {" (record)"}`. One in `r round(IowaPop/clean[nrow(clean),]$deaths, digits = 0)` people in Iowa has died of COVID-19. There are `r sick` people actively sick`r if(maxtoday$Still.Sick) {" (record)"}` and `r percent_hospital`% (`r today$hospitalized`) are hospitalized`r if(maxtoday$hospitalized) {" (record)"}`. `r percent_ICU`% (`r ICU`) of those hospitalized are in the ICU`r if(maxtoday$ICU) {" (record)"}`.
+
+One year ago, we had `r subset(clean, date == (day-365))$New.Positive` new positive patients in Iowa.
 
 #Print Graphs
 
