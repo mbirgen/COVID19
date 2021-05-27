@@ -122,9 +122,13 @@ county <- read.csv(filename,
 filename <- "Summary.csv"
 CountyData <- read.csv(filename,
                        stringsAsFactors = FALSE)
-CountyData <- as.data.frame(CountyData) %>%
-    arrange(County) %>%
-  mutate(Individuals.Tested = CountyDataOld$Individuals.Tested[-101], Individuals.Positive= CountyDataOld$Individuals.Positive[-101]) %>%
+CountyData <- as.data.frame(CountyData) 
+CountyData <- CountyData %>%
+    arrange(County) 
+CountyData <- CountyData[CountyData$County != "Unknown",]
+CountyData <- CountyData %>%
+  mutate(Individuals.Tested = CountyDataOld$Individuals.Tested[-101], Individuals.Positive= CountyDataOld$Individuals.Positive[-101]) 
+CountyData <- CountyData %>%
     mutate(Active = Individuals.Positive - Total.Recovered - Total.Deaths,
            positivity = Total.Positive.Tests/Total.Tests,
            date = as.Date(mydate),
@@ -222,6 +226,7 @@ for(i in names_list){
 county_names <- colnames(Tested)
 county_names <- county_names[-76]
 county_names <- gsub(" ", ".", county_names)
+ dates <- as.Date(Tested[,1]    )
 for(i in 2:(length(county_names))){
   i = county_names[i]
     test <- Tested[,i]
@@ -231,7 +236,6 @@ for(i in 2:(length(county_names))){
     hosp <- as.integer(hospital[,i])
     hosp = c(rep(NA, length(test)-length(hosp)),hosp)
     death <- as.numeric(Deaths[,i])
-    dates <- as.Date(Tested[,1]    )
     temp <- data.frame(
         date = dates,
         Tested = test,
