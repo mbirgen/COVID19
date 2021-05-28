@@ -15,6 +15,7 @@ suppressPackageStartupMessages( require(plyr))
 suppressPackageStartupMessages( require(pdftools))
 suppressPackageStartupMessages( require(tidyverse))
 suppressPackageStartupMessages( require(stringr))
+suppressPackageStartupMessages( require(anytime))
 # suppressPackageStartupMessages( require(readxl))
 ```
 
@@ -185,7 +186,7 @@ templist = c("Tested", "Positive", "Recovered", "Deaths", "Active" )
 # Deaths <- Deaths[-nrow(Deaths),]
 
 
-if( as.character(Tested[nrow(Tested), 1]) != mydate){
+if(anydate(Tested[nrow(Tested), 1]) != mydate){
 Tested <- rbind(Tested, d_county["Individuals.Tested",])
 Positive <- rbind(Positive, d_county["Individuals.Positive",])
 Recovered <- rbind(Recovered, d_county["Total.Recovered",])
@@ -226,7 +227,12 @@ for(i in names_list){
 county_names <- colnames(Tested)
 county_names <- county_names[-76]
 county_names <- gsub(" ", ".", county_names)
- dates <- as.Date(Tested[,1]    )
+dates <- anydate(Tested[,1]    )
+if(!("Pending.Investigation" %in% names(hospital))){
+  target = which(names(hospital)== "Palo.Alto")
+hospital = cbind(hospital[,1:target,drop=F], data.frame("Pending.Investigation"=""), hospital[,(target+1):length(hospital),drop=F])
+}
+
 for(i in 2:(length(county_names))){
   i = county_names[i]
     test <- Tested[,i]
