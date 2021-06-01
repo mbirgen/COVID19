@@ -46,6 +46,8 @@ In the last week: `r as.integer(Bremerlastrow["Day7.Pos"])` positives, `r as.int
 In the last 14 days: 
  `r as.integer(Bremerlastrow["Day14.Pos"])` positives, `r as.integer(Bremerlastrow["Day14.Rec"])` recovered and `r as.integer(Bremerlastrow["Day14.Death"])` death(s).
  
+ One year ago, we had `r subset(BremerData, date == (day-365))$Active` active cases and  `r subset(BremerData, date == (day-365))$New.Pos` new positive patients in Bremer County.
+ 
 In our regional medical center for North East Iowa, there are `r as.integer(today["RMCC6.Hospitalized"])` in the hospital`r if(todaytemp$RMCC6.Hospitalized) {" (record)"}` and `r as.integer(today["RMCC6.ICU"])` in the ICU`r if(todaytemp$RMCC6.ICU) {" (record)"}`.
  
  ***
