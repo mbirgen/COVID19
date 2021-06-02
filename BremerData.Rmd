@@ -77,6 +77,8 @@ BlackHawk_Population <- county[
     county$STATE=="Iowa"&county$COUNTY=="Black Hawk",
     ][,3]
 
+year_reference = subset(BremerData, date == (day-365))$New.Pos/Bremer_Population
+
 temp = clean[,c("date","Bremer.SS", "Butler.SS", "BlackHawk.SS")]
 temp = temp %>% mutate(Bremer = Bremer.SS/Bremer_Population*100000,
                        Butler = Butler.SS/Butler_Population* 100000,
@@ -86,7 +88,13 @@ mtemp = melt(temp, id.vars = "date",
              measure.vars = c('Bremer', 'Butler', 'BlackHawk'))
 printplot <- qplot(date, value, color = variable, data = mtemp, geom = c("point", "smooth")) +
     ylab("Cases per 100,000") +
-    labs(color = "County", title = paste("Active Cases Per 100,000", mydate))
+    labs(color = "County", title = paste("Active Cases Per 100,000", mydate))+
+  geom_hline(yintercept = year_reference, 
+             color = "red") + 
+  geom_text(
+    aes(x= temp$date[1]+20, y= year_reference, 
+        label = day-365, vjust = -0.5), 
+    colour = "black")
 
 print(printplot)
 png("BBBCounties.png")

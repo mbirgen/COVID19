@@ -455,7 +455,7 @@ One year ago, we had `r format(oldactive, scientific = FALSE, big.mark=",") ` ac
 
 ```{r}
 pactive <- qplot(date, Still.Sick, data = clean[-(1:23),], geom = c("point", "smooth")) +
-ggtitle("Known Active COVID-19 Cases in Iowa")
+ggtitle("Known Active COVID-19 Cases in Iowa") +  geom_hline(yintercept = oldactive, color = "red")
 png(paste(day,"pactive.png"))
 pactive
 dev.off()
