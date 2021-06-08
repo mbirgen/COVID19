@@ -445,6 +445,41 @@ temp = subset(clean, date == (day-365))
 oldactive = temp$positive-temp$Recovered-temp$deaths
 rm(temp)
 ```
+```{r}
+# Vaccine Information
+Vaccine = read.csv("Vaccine Series by County of Vaccine Provider.csv",stringsAsFactors=F)
+Vaccine = as.data.frame(Vaccine) %>%
+    arrange(County)%>%
+    mutate (Total.Dose.Completed = 
+                Two.Dose.Series.Completed + Single.Dose.Series.Completed)
+colTotal <- function(data) sapply(data, sum, na.rm = TRUE)
+temp1 = colTotal(Vaccine[,-1])
+Vaccine <- rbind(Vaccine, c("Totals", temp1))
+rm(temp1)
+
+VaccineNames = colnames(Vaccine)
+for(i in 2:ncol(Vaccine)){
+    a = VaccineNames[i]
+    temp = Vaccine[,c("County",a)]
+    temp[,a] = as.integer(temp[,a])
+    temp = rbind(c("Date",date), temp)
+    temp = t(temp)
+    temp1 = read.csv(paste("CountyData/",a,
+                          "Data.csv", sep=" "), header = T,
+             stringsAsFactors = FALSE)
+    rownames(temp1) = temp1[,1]
+    temp1 = temp1[,-1]
+    if(temp1[nrow(temp1),1]!= temp[2,1]){
+        temp = rbind(temp1,temp[2,])
+    }
+    
+    write.csv(temp, paste("CountyData/",a,
+     "Data.csv", sep=" "))
+      rm(temp, temp1)
+}
+    
+```
+
 # Iowa COVID-19 Summary `r day`
 
 Today we had `r new_pos` new positive patients `r if(maxtoday$New.Positive) {" (record)"}` which is `r percent_pos`% (`r percent_pos7`% in the last week) of the newly tested people recorded in the last 24 hours.  `r clean$Week.Deaths[nrow(clean)]` deaths in the last week`r if(maxtoday$Week.Deaths) {" (record)"}`. One in `r round(IowaPop/clean[nrow(clean),]$deaths, digits = 0)` people in Iowa has died of COVID-19. There are `r sick` people actively sick`r if(maxtoday$Still.Sick) {" (record)"}` and `r percent_hospital`% (`r today$hospitalized`) are hospitalized`r if(maxtoday$hospitalized) {" (record)"}`. `r percent_ICU`% (`r ICU`) of those hospitalized are in the ICU`r if(maxtoday$ICU) {" (record)"}`.
