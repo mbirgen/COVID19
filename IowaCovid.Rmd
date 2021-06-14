@@ -455,14 +455,14 @@ Vaccine = as.data.frame(Vaccine) %>%
 colTotal <- function(data) sapply(data, sum, na.rm = TRUE)
 temp1 = colTotal(Vaccine[,-1])
 Vaccine <- rbind(Vaccine, c("Totals", temp1))
-rm(temp1)
+# Vaccine = sapply(Vaccine[-1,-1], as.integer)
 
 VaccineNames = colnames(Vaccine)
 for(i in 2:ncol(Vaccine)){
     a = VaccineNames[i]
     temp = Vaccine[,c("County",a)]
     temp[,a] = as.integer(temp[,a])
-    temp = rbind(c("Date",date), temp)
+    temp = rbind(c("Date",mydate), temp)
     temp = t(temp)
     temp1 = read.csv(paste("CountyData/",a,
                           "Data.csv", sep=" "), header = T,
@@ -472,7 +472,7 @@ for(i in 2:ncol(Vaccine)){
     if(temp1[nrow(temp1),1]!= temp[2,1]){
         temp = rbind(temp1,temp[2,])
     }
-    
+    assign(a,temp)
     write.csv(temp, paste("CountyData/",a,
      "Data.csv", sep=" "))
       rm(temp, temp1)
