@@ -489,9 +489,9 @@ Today we had `r new_pos` new positive patients `r if(maxtoday$New.Positive) {" (
 One year ago, we had `r format(oldactive, scientific = FALSE, big.mark=",") ` actively sick and `r subset(clean, date == (day-365))$New.Positive` new positive patients in Iowa.
 
 ```{r}
-OldDeaths <- read.csv("Total Deaths20.csv")
+OldDeaths <- read.csv("Total Deaths21.csv")
 OldDeaths[,1] = as.Date(OldDeaths[,1])
-NewDeaths <- read.csv("Total Deaths21.csv")
+NewDeaths <- read.csv("Total Deaths23.csv")
 NewDeaths[,1] = as.Date(NewDeaths[,1])
 
 
