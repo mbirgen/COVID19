@@ -490,10 +490,11 @@ One year ago, we had `r format(oldactive, scientific = FALSE, big.mark=",") ` ac
 
 ```{r}
 
-OldDeaths <- read.csv(paste0("Total Deaths",day(mydate)-1,".csv"))
+OldDeaths <- read.csv(paste0("Total Deaths",day(mydate-1),".csv"))
 OldDeaths[,1] = as.Date(OldDeaths[,1])
-weekOldDeaths <- read.csv(paste0("Total Deaths",day(mydate)-7,".csv"))
-weekOldDeaths[,1] = as.Date(OldDeaths[,1])
+
+# weekOldDeaths <- read.csv(paste0("Total Deaths",day(mydate-7),".csv"))
+# weekOldDeaths[,1] = as.Date(OldDeaths[,1])
 NewDeaths <- read.csv(paste0("Total Deaths",day(mydate),".csv"))
 NewDeaths[,1] = as.Date(NewDeaths[,1])
 
@@ -503,10 +504,10 @@ NDeaths = NDeaths %>% mutate(change = Total.Deaths...Daily.Total.x
                              -Total.Deaths...Daily.Total.y)
 NDeaths[NDeaths$change != 0,1]
 
-NweekDeaths = as.data.frame(merge(NewDeaths, weekOldDeaths, by ="EventDateOfDeath"))
-NweekDeaths = NweekDeaths %>% mutate(change = Total.Deaths...Daily.Total.x
-                             -Total.Deaths...Daily.Total.y)
-NweekDeaths[NweekDeaths$change != 0,1]
+# NweekDeaths = as.data.frame(merge(NewDeaths, weekOldDeaths, by ="EventDateOfDeath"))
+# NweekDeaths = NweekDeaths %>% mutate(change = Total.Deaths...Daily.Total.x
+#                              -Total.Deaths...Daily.Total.y)
+# NweekDeaths[NweekDeaths$change != 0,1]
 ```
 
 
