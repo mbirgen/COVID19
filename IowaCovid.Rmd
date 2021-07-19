@@ -305,7 +305,7 @@ county <- read.csv("censusCounties.csv", stringsAsFactors = FALSE)
 names(covid19)[names(covid19) == "ï..date"] <- 'date'
 # covid19$date <- mdy(covid19$date)
 covid19$date <- ymd(covid19$date)
-covid19$deaths = sapply(covid19$deaths, as.integer)
+covid19[,-1] = sapply(covid19[,-1], as.numeric)
 
 covid19 <-covid19 %>% mutate(
   negative = Total.Tested - positive,
