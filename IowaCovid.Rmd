@@ -127,6 +127,8 @@ CountyData <- as.data.frame(CountyData)
 CountyData <- CountyData %>%
     arrange(County) 
 CountyData <- CountyData[CountyData$County != "Unknown",]
+CountyDataOld <- CountyDataOld[CountyDataOld$County != "Pending Investigation",]
+CountyDataOld <- CountyDataOld[CountyDataOld$County != "Totals",]
 CountyData <- CountyData %>%
   mutate(Individuals.Tested = CountyDataOld$Individuals.Tested[-101], Individuals.Positive= CountyDataOld$Individuals.Positive[-101]) 
 CountyData <- CountyData %>%
@@ -211,7 +213,9 @@ PerPos7 <- (Positive[trows,-1]-
      Tested[trows-7,-1])
 
 names_list <- rownames(CountyData)
-names_list <- names_list[-c(75,101)]
+
+names_list <- names_list[names_list != "Pending Investigation"]
+names_list <- names_list[names_list != "Totals"]
 # names_list <- names_list[-100]
 pop <- c(1:99)
 
@@ -225,7 +229,7 @@ for(i in names_list){
 }
 
 county_names <- colnames(Tested)
-county_names <- county_names[-76]
+county_names <- county_names[county_names != "Pending Investigation"]
 county_names <- gsub(" ", ".", county_names)
 dates <- anydate(Tested[,1]    )
 if(!("Pending.Investigation" %in% names(hospital))){
@@ -515,7 +519,11 @@ NDeaths[NDeaths$change != 0,1]
 
 ```{r}
 pactive <- qplot(date, Still.Sick, data = clean[-(1:23),], geom = c("point", "smooth")) +
-ggtitle("Known Active COVID-19 Cases in Iowa") +  geom_hline(yintercept = oldactive, color = "red")
+ggtitle("Known Active COVID-19 Cases in Iowa") +  geom_hline(yintercept = oldactive, color = "red") +
+  geom_text(
+    aes(x= clean$date[1]+80, y= oldactive, 
+        label = day-365, vjust = -0.5), 
+    colour = "black")
 png(paste(day,"pactive.png"))
 pactive
 dev.off()
@@ -534,13 +542,13 @@ dev.off()
  dev.off()
  ppositive
 
- p7positive <-qplot(date, Week.Positivity.Rate, data = clean[-(1:20),], geom = c("point", "smooth")) + ylab("Fraction Positive") +
- ggtitle("7 day average of Fraction of Positive COVID-19 Tests in Iowa")
- png(paste(day,"p7positive.png"))
-
- p7positive
- dev.off()
- p7positive
+ # p7positive <-qplot(date, Week.Positivity.Rate, data = clean[-(1:20),], geom = c("point", "smooth")) + ylab("Fraction Positive") +
+ # ggtitle("7 day average of Fraction of Positive COVID-19 Tests in Iowa")
+ # png(paste(day,"p7positive.png"))
+ # 
+ # p7positive
+ # dev.off()
+ # p7positive
 ```
 
 
