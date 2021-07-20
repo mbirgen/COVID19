@@ -349,7 +349,8 @@ write.csv(covid19, "covid19.csv",row.names = FALSE)
 #################################################
 
 clearn <- !is.na(covid19$positive)
-clean <- covid19[clearn,]
+clean <- covid19[clearn,] 
+
 cdeaths <- covid19[!is.na(covid19$deaths),]
 clean <- clean %>% mutate(
   negative = Total.Tested - positive,
