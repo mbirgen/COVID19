@@ -1,4 +1,5 @@
-"date","Total Confirmed Cases","Deceased","Hospitalized","Recovering","Child Cases (0-17)","Adult Cases (18-40)","Middle Aged Cases (41-60)","Older Adult Cases (61-80)","Elderly Cases (81 or Older)","Male Cases","Female Cases","Individuals Tested","COVID-19 Patients Admitted in last 24 hrs","COVID-19 Patients in ICU","Total Ventilators Available","COVID-19 Patients on Ventilators"
+"date","Total.Confirmed.Cases","Deceased","Hospitalized","Recovering","Child.Cases..0.17.","Adult.Cases..18.40.","Middle.Aged.Cases..41.60.","Older.Adult.Cases..61.80.","Elderly.Cases..81.or.Older.","Male.Cases","Female.Cases","Individuals.Tested","COVID.19.Patients.Admitted.in.last.24.hrs","COVID.19.Patients.in.ICU","Total.Ventilators.Available","COVID.19.Patients.on.Ventilators"
 "2021-07-17","375859","6158","84","367308","44559","151107","107063","57343","15761","177293","194678","1812055","23","22","912","10"
 "2021-07-18","375960","6158","88","367340","44577","151143","107094","57354","15766","177339","194732","1812651","16","23","930","11"
 "2021-07-19","376101","6158","88","367376","44601","151204","107122","57381","15767","177401","194810","1813360","13","23","931","13"
+"2021-07-20","376350","6158","95","367482","44655","151305","107185","57410","15769","177519","194938","1814783","18","27","933","13"
