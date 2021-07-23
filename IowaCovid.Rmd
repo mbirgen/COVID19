@@ -446,40 +446,40 @@ rm(temp)
 write.csv(BremerData, "CountyData/BremerData.csv")
 
 maxtoday = data.frame(colMax(clean[,-1]) == today[,-1])
-temp = subset(clean, date == (day-365))
+temp = subset(clean, date == (as.Date(day)-365))
 oldactive = temp$positive-temp$Recovered-temp$deaths
 rm(temp)
 ```
 ```{r}
 # Vaccine Information
-Vaccine = read.csv("Vaccine Series by County of Vaccine Provider.csv",stringsAsFactors=F)
-Vaccine = as.data.frame(Vaccine) %>%
-    arrange(County)%>%
-    mutate (Total.Dose.Completed = 
-                Two.Dose.Series.Completed + Single.Dose.Series.Completed)
-colTotal <- function(data) sapply(data, sum, na.rm = TRUE)
-temp1 = colTotal(Vaccine[,-1])
-Vaccine <- rbind(Vaccine, c("Totals", temp1))
+# Vaccine = read.csv("Vaccine Series by County of Vaccine Provider.csv",stringsAsFactors=F)
+# Vaccine = as.data.frame(Vaccine) %>%
+#     arrange(County)%>%
+#     mutate (Total.Dose.Completed = 
+#                 Two.Dose.Series.Completed + Single.Dose.Series.Completed)
+# colTotal <- function(data) sapply(data, sum, na.rm = TRUE)
+# temp1 = colTotal(Vaccine[,-1])
+# Vaccine <- rbind(Vaccine, c("Totals", temp1))
 # Vaccine = sapply(Vaccine[-1,-1], as.integer)
 
-VaccineNames = colnames(Vaccine)
-for(i in 2:ncol(Vaccine)){
-    a = VaccineNames[i]
-    temp = Vaccine[,c("County",a)]
-    temp[,a] = as.integer(temp[,a])
-    temp = rbind(c("Date",mydate), temp)
-    temp = t(temp)
-    temp1 = read.csv(paste("CountyData/",a,
-                          "Data.csv", sep=" "), header = T,
-             stringsAsFactors = FALSE)
-    rownames(temp1) = temp1[,1]
-    temp1 = temp1[,-1]
-    if(temp1[nrow(temp1),1]!= temp[2,1]){
-        temp = rbind(temp1,temp[2,])
-    }
-    assign(a,temp)
-    write.csv(temp, paste("CountyData/",a,
-     "Data.csv", sep=" "))
+# VaccineNames = colnames(Vaccine)
+# for(i in 2:ncol(Vaccine)){
+#     a = VaccineNames[i]
+#     temp = Vaccine[,c("County",a)]
+#     temp[,a] = as.integer(temp[,a])
+#     temp = rbind(c("Date",mydate), temp)
+#     temp = t(temp)
+#     temp1 = read.csv(paste("CountyData/",a,
+#                           "Data.csv", sep=" "), header = T,
+#              stringsAsFactors = FALSE)
+#     rownames(temp1) = temp1[,1]
+#     temp1 = temp1[,-1]
+#     if(temp1[nrow(temp1),1]!= temp[2,1]){
+#         temp = rbind(temp1,temp[2,])
+#     }
+#     assign(a,temp)
+#     write.csv(temp, paste("CountyData/",a,
+#      "Data.csv", sep=" "))
       # rm(temp, temp1)
 }
     
@@ -519,11 +519,12 @@ NDeaths[NDeaths$change != 0,1]
 #Print Graphs
 
 ```{r}
+day = as.Date(day)
 pactive <- qplot(date, Still.Sick, data = clean[-(1:23),], geom = c("point", "smooth")) +
 ggtitle("Known Active COVID-19 Cases in Iowa") +  geom_hline(yintercept = oldactive, color = "red") +
   geom_text(
     aes(x= clean$date[1]+80, y= oldactive, 
-        label = day-365, vjust = -0.5), 
+        label = as.Date(day)-365, vjust = -0.5), 
     colour = "black")
 png(paste(day,"pactive.png"))
 pactive
