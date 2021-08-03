@@ -350,7 +350,7 @@ write.csv(covid19, "covid19.csv",row.names = FALSE)
 
 clearn <- !is.na(covid19$positive)
 clean <- covid19[clearn,] 
-
+clean$date = as.Date(clean$date)
 cdeaths <- covid19[!is.na(covid19$deaths),]
 clean <- clean %>% mutate(
   negative = Total.Tested - positive,
@@ -487,20 +487,23 @@ rm(temp)
 
 # Iowa COVID-19 Summary `r day`
 
-Today we had `r new_pos` new positive patients `r if(maxtoday$New.Positive) {" (record)"}` which is `r percent_pos`% (`r percent_pos7`% in the last week) of the newly tested people recorded in the last 24 hours.  `r clean$Week.Deaths[nrow(clean)]` deaths in the last week`r if(maxtoday$Week.Deaths) {" (record)"}`. One in `r round(IowaPop/clean[nrow(clean),]$deaths, digits = 0)` people in Iowa has died of COVID-19. There are `r sick` people actively sick`r if(maxtoday$Still.Sick) {" (record)"}` and `r percent_hospital`% (`r today$hospitalized`) are hospitalized`r if(maxtoday$hospitalized) {" (record)"}`. `r percent_ICU`% (`r ICU`) of those hospitalized are in the ICU`r if(maxtoday$ICU) {" (record)"}`.
+Today we had `r new_pos` new positive patients `r if(maxtoday$New.Positive) {" (record)"}` which is `r percent_pos`% (`r percent_pos7`% in the last week) of the newly tested people recorded in the last week.  `r clean$Week.Deaths[nrow(clean)]` deaths in the last week`r if(maxtoday$Week.Deaths) {" (record)"}`. One in `r round(IowaPop/clean[nrow(clean),]$deaths, digits = 0)` people in Iowa has died of COVID-19. There are `r sick` people actively sick`r if(maxtoday$Still.Sick) {" (record)"}` and `r percent_hospital`% (`r today$hospitalized`) are hospitalized`r if(maxtoday$hospitalized) {" (record)"}`. `r percent_ICU`% (`r ICU`) of those hospitalized are in the ICU`r if(maxtoday$ICU) {" (record)"}`.
 
 `r if(today$New.Deaths >=1) {"The newly recorded deaths occurred on "}` `r if(today$New.Deaths >=1) {NDeaths[NDeaths$change != 0,1]}`
 
 One year ago, we had `r format(oldactive, scientific = FALSE, big.mark=",") ` actively sick and `r subset(clean, date == (day-365))$New.Positive` new positive patients in Iowa.
 
 ```{r}
-
-OldDeaths <- read.csv(paste0("Total Deaths",day(mydate-1),".csv"))
+no = 22
+OldDeaths <- read.csv(paste0("Total Deaths",no,".csv"))
+# OldDeaths <- read.csv(paste0("Total Deaths",day(mydate-1),".csv"))
 OldDeaths[,1] = as.Date(OldDeaths[,1])
 
 # weekOldDeaths <- read.csv(paste0("Total Deaths",day(mydate-7),".csv"))
 # weekOldDeaths[,1] = as.Date(OldDeaths[,1])
-NewDeaths <- read.csv(paste0("Total Deaths",day(mydate),".csv"))
+n = 28
+NewDeaths <- read.csv(paste0("Total Deaths",n,".csv"))
+# NewDeaths <- read.csv(paste0("Total Deaths",day(mydate),".csv"))
 NewDeaths[,1] = as.Date(NewDeaths[,1])
 
 
@@ -521,11 +524,11 @@ NDeaths[NDeaths$change != 0,1]
 ```{r}
 day = as.Date(day)
 pactive <- qplot(date, Still.Sick, data = clean[-(1:23),], geom = c("point", "smooth")) +
-ggtitle("Known Active COVID-19 Cases in Iowa") +  geom_hline(yintercept = oldactive, color = "red") +
-  geom_text(
-    aes(x= clean$date[1]+80, y= oldactive, 
-        label = as.Date(day)-365, vjust = -0.5), 
-    colour = "black")
+ggtitle("Known Active COVID-19 Cases in Iowa") +  geom_hline(yintercept = oldactive, color = "red") 
+  # geom_text(
+  #   aes(x= anydate(clean$date[1])+80, y= oldactive, 
+  #       label = as.Date(day)-365, vjust = -0.5), 
+  #   colour = "black")
 png(paste(day,"pactive.png"))
 pactive
 dev.off()
