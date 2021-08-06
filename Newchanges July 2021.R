@@ -1,6 +1,6 @@
 
 Summary <- pdf_text(
-    "Iowa COVID-19 Information - access21.pdf") %>%
+    "Iowa COVID-19 Information - access04.pdf") %>%
     readr::read_lines() %>% str_squish()
 # temp1 = strsplit(Summary[1]," ") %>% ldply()
 temp1 = Summary[6] %>% ldply()
@@ -49,12 +49,13 @@ tempdata = cbind("date"=date, tempdata)
 statedata <- read.csv(paste(
   'CountyData/StateData.csv'),
                    stringsAsFactors = FALSE)
-statedata = rbind(statedata, tempdata)
+# statedata = rbind(statedata, tempdata)
 if (statedata$date[nrow(statedata)] != tempdata[1]){
 statedata[nrow(statedata)+1,]=tempdata
 }
 write.csv(statedata, file = paste(
-    'CountyData/StateData.csv'), ,row.names = FALSE)
+    'CountyData/StateData.csv'), 
+    row.names = FALSE)
 
 ##Add data to big csv files
 d_county <- t(CountyDataOld)
@@ -181,28 +182,29 @@ write.csv(Active, "CountyData/CountyActive.csv")
 
 covid19 <- read.csv("covid19.csv", 
                     stringsAsFactors = FALSE)
-covid19$date = mdy(covid19$date)
+names(covid19)[names(covid19) == "ï..date"] <- 'date'
+covid19$date = anydate(covid19$date)
 
-covid19[nrow(covid19)+1, "date"] = date
+covid19[nrow(covid19)+1, "date"] = as.character(date)
 i=as.Date(date)
 covid19[covid19$date == i,
-        c("date","Bremer.Positive", 
+        c("Bremer.Positive", 
           "Bremer.Recovered", "Bremer.Death")]=
     BremerData[BremerData$date==i, 
-               c("date", "Positive", "Recovered", 
+               c( "Positive", "Recovered", 
                  "Deaths")]
 
 covid19[covid19$date == i,
-        c("date","Butler.P", 
+        c("Butler.P", 
           "Butler.R", "Butler.D")]=
     ButlerData[ButlerData$date==i, 
-               c("date", "Positive", "Recovered", 
+               c("Positive", "Recovered", 
                  "Deaths")]
 covid19[covid19$date == i,
-        c("date","BlackHawk.P", 
+        c("BlackHawk.P", 
           "BlackHawk.R", "BlackHawk.D")]=
     Black.HawkData[Black.HawkData$date==i, 
-               c("date", "Positive", "Recovered", 
+               c("Positive", "Recovered", 
                  "Deaths")]
 
 
@@ -230,14 +232,18 @@ covid19[covid19$date == i,
     #     Deaths[Deaths$date == temp[i],"Totals"]
 
 covid19[-1] = sapply(covid19[,-1], as.numeric)
+covid19 = covid19 %>%
+  mutate(Bremer.SS = Bremer.Positive-Bremer.Death - Bremer.Recovered,
+         Butler.SS = Butler.P - Butler.R,
+         BlackHawk.SS = BlackHawk.P- BlackHawk.D - BlackHawk.R)
 
 write.csv(covid19, "covid19.csv",row.names = FALSE)
 
 #############################################
 ###Print Hospital
 
-qplot(date, hospitalized, 
-      data = tail(clean, n=60),
+qplot(as.Date(date), hospitalized, 
+      data = tail(clean, n=90),
       geom = c("point", "smooth")) + 
   labs(title = "Patients Hospitalized with 
        COVID-19 in Iowa")

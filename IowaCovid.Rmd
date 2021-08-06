@@ -481,27 +481,27 @@ rm(temp)
 #     write.csv(temp, paste("CountyData/",a,
 #      "Data.csv", sep=" "))
       # rm(temp, temp1)
-}
+#}
     
 ```
 
 # Iowa COVID-19 Summary `r day`
 
-Today we had `r new_pos` new positive patients `r if(maxtoday$New.Positive) {" (record)"}` which is `r percent_pos`% (`r percent_pos7`% in the last week) of the newly tested people recorded in the last week.  `r clean$Week.Deaths[nrow(clean)]` deaths in the last week`r if(maxtoday$Week.Deaths) {" (record)"}`. One in `r round(IowaPop/clean[nrow(clean),]$deaths, digits = 0)` people in Iowa has died of COVID-19. There are `r sick` people actively sick`r if(maxtoday$Still.Sick) {" (record)"}` and `r percent_hospital`% (`r today$hospitalized`) are hospitalized`r if(maxtoday$hospitalized) {" (record)"}`. `r percent_ICU`% (`r ICU`) of those hospitalized are in the ICU`r if(maxtoday$ICU) {" (record)"}`.
+Today we had `r new_pos` new positive patients `r if(maxtoday$New.Positive) {" (record)"}` (average of `r new_pos/7` new cases per day) which is `r percent_pos`% of the newly tested people recorded in the last week.  `r clean$Week.Deaths[nrow(clean)]` deaths in the last week`r if(maxtoday$Week.Deaths) {" (record)"}`. One in `r round(IowaPop/clean[nrow(clean),]$deaths, digits = 0)` people in Iowa has died of COVID-19. There are `r sick` people actively sick`r if(maxtoday$Still.Sick) {" (record)"}` and `r percent_hospital`% (`r today$hospitalized`) are hospitalized`r if(maxtoday$hospitalized) {" (record)"}`. `r percent_ICU`% (`r ICU`) of those hospitalized are in the ICU`r if(maxtoday$ICU) {" (record)"}`.
 
 `r if(today$New.Deaths >=1) {"The newly recorded deaths occurred on "}` `r if(today$New.Deaths >=1) {NDeaths[NDeaths$change != 0,1]}`
 
 One year ago, we had `r format(oldactive, scientific = FALSE, big.mark=",") ` actively sick and `r subset(clean, date == (day-365))$New.Positive` new positive patients in Iowa.
 
 ```{r}
-no = 22
+no = 21
 OldDeaths <- read.csv(paste0("Total Deaths",no,".csv"))
 # OldDeaths <- read.csv(paste0("Total Deaths",day(mydate-1),".csv"))
 OldDeaths[,1] = as.Date(OldDeaths[,1])
 
 # weekOldDeaths <- read.csv(paste0("Total Deaths",day(mydate-7),".csv"))
 # weekOldDeaths[,1] = as.Date(OldDeaths[,1])
-n = 28
+n = "05"
 NewDeaths <- read.csv(paste0("Total Deaths",n,".csv"))
 # NewDeaths <- read.csv(paste0("Total Deaths",day(mydate),".csv"))
 NewDeaths[,1] = as.Date(NewDeaths[,1])
@@ -565,16 +565,15 @@ dev.off()
  Butler_Population <- county[county$STATE=="Iowa"&county$COUNTY=="Butler",][,3]
  BlackHawk_Population <- county[county$STATE=="Iowa"&county$COUNTY=="Black Hawk",][,3]
  pBremer <-qplot(date,
-                 #Butler.SS/Butler_Population*100000,
                  Bremer.SS,
-                 data = clean[-(1:116),], geom = c("point", "smooth")) +
+                 data = tail(clean, n=120), geom = c("point", "smooth")) +
    ggtitle("Known Active COVID-19 Cases in Bremer County")
  #    "Known Active COVID-19 Cases in Bremer County")
  #+  geom_hline(aes(yintercept=State_Average_Active)
  pButler <-qplot(date,
                  #Butler.SS/Butler_Population*100000,
                  Butler.SS,
-                 data = clean[-(1:116),], geom = c("point", "smooth")) +
+                 data = tail(clean, n=120), geom = c("point", "smooth")) +
    ggtitle("Known Active COVID-19 Cases in Butler County")
 ggtitle("Known Active COVID-19 Cases in Butler County Per 100,000 People")
 #+  geom_hline(aes(yintercept=State_Average_Active)
@@ -585,7 +584,7 @@ ggtitle("Known Active COVID-19 Cases in Butler County Per 100,000 People")
  pBlackHawk <-qplot(date,
                  #Butler.SS/Butler_Population*100000,
                  BlackHawk.SS,
-                 data = clean[-(1:116),], geom = c("point", "smooth")) +
+                 data = tail(clean, n=120), geom = c("point", "smooth")) +
    ggtitle("Known Active COVID-19 Cases in Black Hawk County")
  png(paste(day,"pBlackHawk.png"))
  pBlackHawk
