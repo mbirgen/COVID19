@@ -1,6 +1,5 @@
-
 Summary <- pdf_text(
-    "Iowa COVID-19 Information - access04.pdf") %>%
+    "access _ Iowa COVID-19 Information19.pdf") %>%
     readr::read_lines() %>% str_squish()
 # temp1 = strsplit(Summary[1]," ") %>% ldply()
 temp1 = Summary[6] %>% ldply()
@@ -53,9 +52,12 @@ statedata <- read.csv(paste(
 if (statedata$date[nrow(statedata)] != tempdata[1]){
 statedata[nrow(statedata)+1,]=tempdata
 }
+statedata[,-1] = sapply(statedata[,-1], as.integer)
 write.csv(statedata, file = paste(
     'CountyData/StateData.csv'), 
     row.names = FALSE)
+
+
 
 ##Add data to big csv files
 d_county <- t(CountyDataOld)

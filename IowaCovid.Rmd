@@ -451,15 +451,28 @@ rm(temp)
 ```
 ```{r}
 # Vaccine Information
-# Vaccine = read.csv("Vaccine Series by County of Vaccine Provider.csv",stringsAsFactors=F)
-# Vaccine = as.data.frame(Vaccine) %>%
-#     arrange(County)%>%
-#     mutate (Total.Dose.Completed = 
-#                 Two.Dose.Series.Completed + Single.Dose.Series.Completed)
-# colTotal <- function(data) sapply(data, sum, na.rm = TRUE)
-# temp1 = colTotal(Vaccine[,-1])
-# Vaccine <- rbind(Vaccine, c("Totals", temp1))
-# Vaccine = sapply(Vaccine[-1,-1], as.integer)
+colTotal <- function(data) sapply(data, sum, na.rm = TRUE)
+CountyLookup = as.data.frame(read.csv("CountyLookUp.csv", stringsAsFactors=F, col.names = c("RECIP_ADDRESS_COUNTY", "County")))
+CompleteVaccination = read.csv("CountyData/Vaccine.csv", stringsAsFactors = F)
+
+Vaccine = as.data.frame(read.csv("Vaccine Series Completion by Recipient County of Residence.csv", stringsAsFactors=F))
+# Vaccine = sapply(Vaccine, as.integer)
+Vaccine$County <- CountyLookup[
+    match(Vaccine$RECIP_ADDRESS_COUNTY, 
+          CountyLookup$RECIP_ADDRESS_COUNTY),2]
+
+Vaccine = Vaccine %>%
+    arrange(County)
+
+temp1 = colTotal(Vaccine[,-grep("County", colnames(Vaccine))])
+Vaccine <- rbind(Vaccine, c( temp1,"Totals"))
+
+# CompleteVaccination[,-1] = t(Vaccine$Vaccinations.Completed[-1])
+CompleteVaccination[nrow(CompleteVaccination)+1,-1] = t(Vaccine$Vaccinations.Completed[-1])
+CompleteVaccination[nrow(CompleteVaccination),1] = as.character(Sys.Date())
+
+write.csv(CompleteVaccination, "CountyData/Vaccine.csv", row.names = F)
+
 
 # VaccineNames = colnames(Vaccine)
 # for(i in 2:ncol(Vaccine)){
@@ -490,17 +503,17 @@ Today we had `r new_pos` new positive patients `r if(maxtoday$New.Positive) {" (
 
 `r if(today$New.Deaths >=1) {"The newly recorded deaths occurred on "}` `r if(today$New.Deaths >=1) {NDeaths[NDeaths$change != 0,"NewD"]}`
 
-One year ago, we had `r format(oldactive, scientific = FALSE, big.mark=",") ` actively sick and `r subset(clean, date == (day-365))$New.Positive` new positive patients in Iowa.
+One year ago, we had `r format(oldactive, scientific = FALSE, big.mark=",") ` actively sick and `r subset(clean, date == (day-365))$New.Positive` new positive patients per day in Iowa.
 
 ```{r}
-no = "06"
+no = 24
 OldDeaths <- read.csv(paste0("Total Deaths",no,".csv"))
 # OldDeaths <- read.csv(paste0("Total Deaths",day(mydate-1),".csv"))
 OldDeaths[,1] = as.Date(OldDeaths[,1])
 
 # weekOldDeaths <- read.csv(paste0("Total Deaths",day(mydate-7),".csv"))
 # weekOldDeaths[,1] = as.Date(OldDeaths[,1])
-n = "12"
+n = "26"
 NewDeaths <- read.csv(paste0("Total Deaths",n,".csv"))
 # NewDeaths <- read.csv(paste0("Total Deaths",day(mydate),".csv"))
 NewDeaths[,1] = as.Date(NewDeaths[,1])
