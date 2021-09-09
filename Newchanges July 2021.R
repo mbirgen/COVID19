@@ -1,15 +1,29 @@
+
+suppressPackageStartupMessages( 
+  require(dplyr))
+suppressPackageStartupMessages( require(lubridate))
+suppressPackageStartupMessages( require(ggplot2))
+suppressPackageStartupMessages( require(zoo))
+suppressPackageStartupMessages( require(gsheet))
+suppressPackageStartupMessages( require(plyr))
+suppressPackageStartupMessages( require(pdftools))
+suppressPackageStartupMessages( require(tidyverse))
+suppressPackageStartupMessages( require(stringr))
+suppressPackageStartupMessages( require(anytime))
+# suppressPackageStartupMessages( require(readxl))
+
 Summary <- pdf_text(
-    "access _ Iowa COVID-19 Information19.pdf") %>%
+    "access _ Iowa COVID-19 Information08.pdf") %>%
     readr::read_lines() %>% str_squish()
-# temp1 = strsplit(Summary[1]," ") %>% ldply()
-temp1 = Summary[6] %>% ldply()
+Summary = Summary[!Summary == ""]
+temp1 = Summary[6] %>% ldply() 
 date = as.character(mdy(temp1[1]))
 
 Summary <- str_remove_all(Summary, " Translate") %>% 
     str_remove_all("Translate")
-CountyDataOld <- Summary[44:149] %>%
+CountyDataOld <- Summary[43:146] %>%
     strsplit("(?= [A-Za-z])(?<=[0-9])|(?= [0-9])(?<=[A-Za-z])", perl=TRUE)
-CountyDataOld <- CountyDataOld[-c(10:12,72:74)]
+CountyDataOld <- CountyDataOld[-c(10:11,71:72)]
 CountyDataOld <- plyr::ldply(CountyDataOld)
 temp <- strsplit(CountyDataOld[,2], " ", fixed = TRUE)
 temp <- plyr::ldply(temp)
@@ -37,11 +51,14 @@ write.csv(CountyDataOld, file = paste(
     'CountyData/',date,'CountyData.csv'))
 
 #More interesting information
-tempnames =Summary[seq(7,41, 2)]
-tempnames = tempnames[-(9:10)]
-tempdata =Summary[seq(8,42, 2)]
-tempdata = tempdata[-(8:9)]
-tempdata = plyr::ldply(as.integer(gsub(",","",tempdata)))
+tempnames =Summary[seq(7,21, 2)]
+tempnames1 = Summary[seq(26,40,2)]
+tempnames = c(tempnames, tempnames1)
+tempdata =Summary[seq(8,20, 2)]
+tempdata1 =Summary[seq(25,41, 2)]
+tempdata = c(tempdata, tempdata1)
+tempdata = plyr::ldply(as.integer(
+  gsub(",","",tempdata)))
 tempdata = t(tempdata)
 colnames(tempdata) <- tempnames
 tempdata = cbind("date"=date, tempdata)
@@ -186,8 +203,10 @@ covid19 <- read.csv("covid19.csv",
                     stringsAsFactors = FALSE)
 names(covid19)[names(covid19) == "ï..date"] <- 'date'
 covid19$date = anydate(covid19$date)
-
-covid19[nrow(covid19)+1, "date"] = as.character(date)
+if(covid19[nrow(covid19), "date"] != date){
+covid19[nrow(covid19)+1, "date"] = 
+  as.character(date)
+}
 i=as.Date(date)
 covid19[covid19$date == i,
         c("Bremer.Positive", 

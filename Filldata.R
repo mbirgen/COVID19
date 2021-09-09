@@ -1,12 +1,12 @@
 date = seq.Date(min(covid19$date), 
                 max(covid19$date), by = "day")
-temp = covid19[, 1:6] %>%
+temp = covid19[] %>%
     complete(
         date = seq.Date(min(covid19$date), 
                         max(covid19$date), by = "day")) %>%
     fill("Total.Tested", "positive", "Recovered", "deaths",
          "hospitalized") 
-temp[,-1] = sapply(temp[,-1], as.integer)
+temp[,-1] = sapply(temp[,-1], as.numeric)
 # names(temp) = c("date", "Tested", "Positive", 
 #                "Recovered", "Deaths", "Hospitalized")
 temp = temp %>% mutate(
