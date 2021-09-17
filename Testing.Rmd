@@ -1,0 +1,9 @@
+---
+title: "R Experiments"
+output: html_notebook
+---
+
+
+# Iowa COVID-19 Summary 
+
+Today we had `r format(as.numeric(new_pos), scientific = FALSE, big.mark=",")` new positive patients (average of `r as.numeric(week.new.pos)`)

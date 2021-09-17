@@ -13,7 +13,7 @@ suppressPackageStartupMessages( require(anytime))
 # suppressPackageStartupMessages( require(readxl))
 
 Summary <- pdf_text(
-    "access _ Iowa COVID-19 Information08.pdf") %>%
+    "access _ Iowa COVID-19 Information15.pdf") %>%
     readr::read_lines() %>% str_squish()
 Summary = Summary[!Summary == ""]
 temp1 = Summary[6] %>% ldply() 
@@ -134,6 +134,7 @@ county_names <- colnames(Tested)
 county_names <- county_names[county_names != "Pending Investigation"]
 # county_names <- county_names[-76]
 county_names <- gsub(" ", ".", county_names)
+county_names <- gsub("'", ".", county_names)
 dates <- anydate(Tested[,1]    )
 if(!("Pending.Investigation" %in% names(hospital))){
     target = which(names(hospital)== "Palo.Alto")
