@@ -265,7 +265,7 @@ write.csv(covid19, "covid19.csv",row.names = FALSE)
 ###Print Hospital
 
 qplot(as.Date(date), hospitalized, 
-      data = tail(clean, n=90),
+      data = tail(covid19, n=90),
       geom = c("point", "smooth")) + 
   labs(title = "Patients Hospitalized with 
        COVID-19 in Iowa")
