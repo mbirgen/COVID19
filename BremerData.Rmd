@@ -87,9 +87,9 @@ BlackHawk_Population <- county[
 year_reference = subset(BremerData, date == (day-365))$Active/Bremer_Population*10^5
 
 temp = clean[,c("date","Bremer.SS", "Butler.SS", "BlackHawk.SS")]
-temp = temp %>% mutate(Bremer = Bremer.SS/Bremer_Population*100000,
-                       Butler = Butler.SS/Butler_Population* 100000,
-                       BlackHawk = BlackHawk.SS/BlackHawk_Population * 100000)
+temp = temp %>% mutate(Bremer = Bremer.SS/Bremer_Population$Population*100000,
+                       Butler = Butler.SS/Butler_Population$Population* 100000,
+                       BlackHawk = BlackHawk.SS/BlackHawk_Population$Population * 100000)
 temp = tail(temp, n=90)
 mtemp = melt(temp, id.vars = "date", 
              measure.vars = c('Bremer', 'Butler', 'BlackHawk'))

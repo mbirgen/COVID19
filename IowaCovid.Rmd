@@ -68,16 +68,17 @@ colnames(h_county) <-  hosp_by_county[,1]
 h_county <- cbind(date = c(date, h_county))
 rownames(h_county) <- colnames(hospital)
 h_county <- t(h_county)
-if(mydate1== date){
+# if(mydate1== date){
     hospital <- rbind(hospital, h_county)
-} else {
-  temp <-hospital[,1]== date
-  temp1 <- (1:600)[temp][1]
-  hospital[temp1,] <- h_county
-  if(as.character(hospital[nrow(hospital),1]) != mydate1){
-  hospital <- rbind.fill(hospital, data.frame(Date = Sys.Date()))
-  }
-}
+# } else {
+#   temp <-hospital[,1]== date
+#   temp1 <- (1:600)[temp][1]
+#   hospital[temp1,] <- h_county
+#   if(as.character(hospital[nrow(hospital),1]) != mydate1){
+  # hospital <- rbind.fill(hospital, data.frame(Date = date))
+#   }
+# }
+hospital <- unique(hospital)
 
 write.csv(hospital, "CountyHospitilizations.csv")
 hospital <- hospital[!is.na(hospital$Adair),]
@@ -86,7 +87,7 @@ hospital <- hospital[!is.na(hospital$Adair),]
 ```{r accessdata}
 ## Change Date on pdf file
 Summary <- pdf_text(
-    "access _ Iowa COVID-19 Information15.pdf") %>%
+    "access _ Iowa COVID-19 Information22.pdf") %>%
     readr::read_lines() %>% str_squish()
 Summary = Summary[!Summary == ""]
 temp1 = Summary[6] %>% ldply() 
@@ -277,7 +278,8 @@ write.csv(Active, "CountyData/CountyActive.csv")
 covid19 <- read.csv("covid19.csv", 
                     stringsAsFactors = FALSE)
 ## Fix an error that sometimes comes from importing from EXCEL
-names(covid19)[names(covid19) == "ï..date"] <- 'date'
+names(covid19)[1] <- "date"
+# names(covid19)[names(covid19) == "ï..date"] <- 'date'
 ## Format date column correctly
 covid19$date = anydate(covid19$date)
 ## Check to see if date already has a row in the data, if not add such a row.
@@ -340,7 +342,7 @@ write.csv(covid19, "covid19.csv",row.names = FALSE)
 ##  Create Clean Dataset
 #######################################
 
-clearn <- !is.na(covid19$positive)
+clearn <- !is.na(covid19$Recovered)
 clean <- covid19[clearn,] 
 clean$date = as.Date(clean$date)
 cdeaths <- covid19[!is.na(covid19$deaths),]
@@ -436,6 +438,7 @@ maxtoday = data.frame(colMax(clean[,-1]) == today[,-1])
 temp = subset(clean, date == (as.Date(day)-365))
 oldactive = temp$positive-temp$Recovered-temp$deaths
 rm(temp)
+week.new.pos = round(new_pos/7, digits = 1)
 ```
 
 ```{r}
@@ -486,7 +489,7 @@ write.csv(CompleteVaccination, "CountyData/Vaccine.csv", row.names = F)
     
 ```
 ```{r}
-week.new.pos = round(new_pos/7, digits = 1)
+
 ```
 # Iowa COVID-19 Summary `r day`
 
