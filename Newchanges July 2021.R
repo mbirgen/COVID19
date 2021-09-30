@@ -13,7 +13,7 @@ suppressPackageStartupMessages( require(anytime))
 # suppressPackageStartupMessages( require(readxl))
 
 Summary <- pdf_text(
-    "access _ Iowa COVID-19 Information15.pdf") %>%
+    "access _ Iowa COVID-19 Information29.pdf") %>%
     readr::read_lines() %>% str_squish()
 Summary = Summary[!Summary == ""]
 temp1 = Summary[6] %>% ldply() 

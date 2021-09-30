@@ -6,16 +6,16 @@ output: html_notebook
 
 ```{r initialization, echo=FALSE}
  
-  require(dplyr)
- require(lubridate)
- require(ggplot2)
- require(zoo)
- require(gsheet)
- require(plyr)
- require(pdftools)
- require(tidyverse)
- require(stringr)
- require(anytime)
+ library(dplyr)
+ library(lubridate)
+ library(ggplot2)
+ library(zoo)
+ library(gsheet)
+ library(plyr)
+ library(pdftools)
+ library(tidyverse)
+ library(stringr)
+ library(anytime)
 #  require(readxl)
 
 colMax <- function(data) sapply(data, max, na.rm = TRUE)
@@ -87,7 +87,7 @@ hospital <- hospital[!is.na(hospital$Adair),]
 ```{r accessdata}
 ## Change Date on pdf file
 Summary <- pdf_text(
-    "access _ Iowa COVID-19 Information22.pdf") %>%
+    "access _ Iowa COVID-19 Information29.pdf") %>%
     readr::read_lines() %>% str_squish()
 Summary = Summary[!Summary == ""]
 temp1 = Summary[6] %>% ldply() 
@@ -488,9 +488,7 @@ write.csv(CompleteVaccination, "CountyData/Vaccine.csv", row.names = F)
 #}
     
 ```
-```{r}
 
-```
 # Iowa COVID-19 Summary `r day`
 
 Today we had `r format(new_pos, scientific = FALSE, big.mark=",")` new positive patients (average of `r week.new.pos`) new cases per day) which is `r percent_pos`% of the newly tested people recorded in the last week.
