@@ -268,4 +268,4 @@ qplot(as.Date(date), hospitalized,
       data = tail(covid19, n=90),
       geom = c("point", "smooth")) + 
   labs(title = "Patients Hospitalized with 
-       COVID-19 in Iowa")
+       COVID-19 in Iowa", xlab = "Date", ylab = "Hospitalized")

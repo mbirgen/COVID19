@@ -4,7 +4,7 @@ author: "Mariah Birgen"
 output: html_notebook
 ---
 
-```{r initialization, echo=FALSE}
+```{r initialization, results='hide'}
  
  library(dplyr)
  library(lubridate)
@@ -22,7 +22,7 @@ colMax <- function(data) sapply(data, max, na.rm = TRUE)
 ```
 
 Load data
-```{r loadcounty, echo=FALSE}
+```{r loadcounty, results='hide'}
 library(readr)
 county = read_csv("censusCounties.csv")
 ## Select data for only Iowa Counties
@@ -87,7 +87,7 @@ hospital <- hospital[!is.na(hospital$Adair),]
 ```{r accessdata}
 ## Change Date on pdf file
 Summary <- pdf_text(
-    "access _ Iowa COVID-19 Information29.pdf") %>%
+    "access _ Iowa COVID-19 Information19.pdf") %>%
     readr::read_lines() %>% str_squish()
 Summary = Summary[!Summary == ""]
 temp1 = Summary[6] %>% ldply() 
@@ -95,10 +95,17 @@ date = as.character(mdy(temp1[1]))
 
 Summary <- str_remove_all(Summary, " Translate") %>% 
     str_remove_all("Translate")
-CountyDataOld <- Summary[43:146] %>%
+# CountyDataOld <- Summary[43:146] %>%
+# strsplit("(?= [A-Za-z])(?<=[0-9])|(?= [0-9])(?<=[A-Za-z])", perl=TRUE)
+CountyDataOld <- Summary[45:148] %>%
     strsplit("(?= [A-Za-z])(?<=[0-9])|(?= [0-9])(?<=[A-Za-z])", perl=TRUE)
-CountyDataOld <- CountyDataOld[-c(10:11,71:72)]
+# CountyDataOld <- CountyDataOld[-c(10:11,71:72)]
+# temp1 = CountyDataOld[44:45]
+# temp2 = plyr::ldply(temp1[1])
+# temp2[,2]=paste0(temp2[,2],plyr::ldply(temp1[2]) )
+CountyDataOld <- CountyDataOld[-c(38:39,91,93:94)]
 CountyDataOld <- plyr::ldply(CountyDataOld)
+# ]CountyDataOld = rbind(CountyDataOld,temp2)
 temp <- strsplit(CountyDataOld[,2], " ", fixed = TRUE)
 temp <- plyr::ldply(temp)
 temp[,1] = CountyDataOld[,1]
@@ -121,16 +128,24 @@ temp["positivity"] = as.integer(temp["Individuals.Positive"])/as.integer(temp["I
 CountyDataOld[101,] = temp
 CountyDataOld[,2:6] = sapply(CountyDataOld[,2:6], as.integer)
 CountyDataOld[,7] = sapply(CountyDataOld[,7], as.numeric)
+CountyDataOld = CountyDataOld[-100,]
 write.csv(CountyDataOld, file = paste(
     'CountyData/',date,'CountyData.csv'))
 
 #More interesting information
-tempnames =Summary[seq(7,21, 2)]
-tempnames1 = Summary[seq(26,40,2)]
-tempnames = c(tempnames, tempnames1)
-tempdata =Summary[seq(8,20, 2)]
-tempdata1 =Summary[seq(25,41, 2)]
-tempdata = c(tempdata, tempdata1)
+# tempnames =Summary[seq(7,21, 2)]
+# tempnames1 = Summary[seq(26,40,2)]
+# tempnames = c(tempnames, tempnames1)
+# tempdata =Summary[seq(8,20, 2)]
+# tempdata1 =Summary[seq(25,41, 2)]
+tempnames =Summary[seq(7,17, 2)]
+tempnames1 = Summary[seq(22,36,2)]
+tempnames2 = Summary[seq(40,42,2)]
+tempnames = c(tempnames, tempnames1, tempnames2)
+tempdata =Summary[seq(8,16, 2)]
+tempdata1 =Summary[seq(21,37, 2)]
+tempdata2 =Summary[seq(41,43, 2)]
+tempdata = c(tempdata, tempdata1, tempdata2)
 tempdata = plyr::ldply(as.integer(
   gsub(",","",tempdata)))
 tempdata = t(tempdata)
@@ -199,13 +214,14 @@ newTest <- Tested[trows,-1]-Tested[trows-1,-1]
 newPos <- Positive[trows,-1]-Positive[trows-1,-1]
 newRec <- Recovered[trows,-1]-Recovered[trows-1,-1]
 newDeath <- Deaths[trows,-1]-Deaths[trows-1,-1]
-PerPos7 <- (Positive[trows,-1]-
-                Positive[trows-7,-1])/
-    (Tested[trows,-1]-
-         Tested[trows-7,-1])
+# PerPos7 <- (Positive[trows,-1]-
+#                 Positive[trows-7,-1])/
+#     (Tested[trows,-1]-
+#          Tested[trows-7,-1])
 
 county_names <- colnames(Tested)
 county_names <- county_names[county_names != "Pending Investigation"]
+county_names <- county_names[county_names != "Pending.Investigation"]
 # county_names <- county_names[-76]
 county_names <- gsub(" ", ".", county_names)
 county_names <- gsub("'", ".", county_names)
@@ -270,7 +286,7 @@ write.csv(Deaths, "CountyData/CountyDeaths.csv")
 write.csv(Active, "CountyData/CountyActive.csv")
 
 ```
-```{r filldata}
+```{r filldata, results='hide'}
 #####################################
 #### Fill in covid19
 #####################################
@@ -412,22 +428,22 @@ temp <- temp  %>%
     New.Rec = Recovered - lag(Recovered),
     New.Deaths = Deaths - lag(Deaths),
     Frac.Pos = New.Pos/New.Test,
-    Day7.Test = Tested - lag(Tested, n=7),
-    Day7.Pos = Positive - lag(Positive, n=7),
-    Day7.Rec = Recovered - lag(Recovered, n=7),
-    Day7.Death = Deaths - lag(Deaths, n=7),
-    Day7.Active = Active - lag(Active, n=7),
-    Day7.Perc = Day7.Pos/Day7.Test,
-    Day14.Test = Tested - lag(Tested, n=14),
-    Day14.Pos = Positive - lag(Positive, n=14),
-    Day14.Rec = Recovered - lag(Recovered, n=14),
-    Day14.Death = Deaths - lag(Deaths, n=14),
-    Day14.Active = Active - lag(Active, n=14),
-    Day14.Perc = Day14.Pos/Day14.Test,
-            Not.Sick = (lag(Positive, n= 10) -
-                          lag(Positive, n=28))*0.7,
-            True.Active = Positive - Recovered -
-              Deaths - round(Not.Sick, digits = 0)
+    # Day7.Test = Tested - lag(Tested, n=7),
+    # Day7.Pos = Positive - lag(Positive, n=7),
+    # Day7.Rec = Recovered - lag(Recovered, n=7),
+    # Day7.Death = Deaths - lag(Deaths, n=7),
+    # Day7.Active = Active - lag(Active, n=7),
+    # Day7.Perc = Day7.Pos/Day7.Test,
+    # Day14.Test = Tested - lag(Tested, n=14),
+    # Day14.Pos = Positive - lag(Positive, n=14),
+    # Day14.Rec = Recovered - lag(Recovered, n=14),
+    # Day14.Death = Deaths - lag(Deaths, n=14),
+    # Day14.Active = Active - lag(Active, n=14),
+    # Day14.Perc = Day14.Pos/Day14.Test,
+            # Not.Sick = (lag(Positive, n= 10) -
+            #               lag(Positive, n=28))*0.7,
+            # True.Active = Positive - Recovered -
+            #   Deaths - round(Not.Sick, digits = 0)
   )
 
 BremerData = temp
@@ -449,9 +465,9 @@ CompleteVaccination = read.csv("CountyData/Vaccine.csv", stringsAsFactors = F)
 
 Vaccine = as.data.frame(read.csv("Vaccine Series Completion by Recipient County of Residence.csv", stringsAsFactors=F))
 # Vaccine = sapply(Vaccine, as.integer)
-Vaccine$County <- CountyLookup[
-    match(Vaccine$RECIP_ADDRESS_COUNTY, 
-          CountyLookup$RECIP_ADDRESS_COUNTY),2]
+# Vaccine$County <- CountyLookup[
+#     match(Vaccine$RECIP_ADDRESS_COUNTY, 
+#           CountyLookup$RECIP_ADDRESS_COUNTY),2]
 
 Vaccine = Vaccine %>%
     arrange(County)
@@ -491,7 +507,7 @@ write.csv(CompleteVaccination, "CountyData/Vaccine.csv", row.names = F)
 
 # Iowa COVID-19 Summary `r day`
 
-Today we had `r format(new_pos, scientific = FALSE, big.mark=",")` new positive patients (average of `r week.new.pos`) new cases per day) which is `r percent_pos`% of the newly tested people recorded in the last week.
+Today we had `r format(new_pos, scientific = FALSE, big.mark=",")` new positive patients (average of `r week.new.pos` new cases per day) which is `r percent_pos`% of the newly tested people recorded in the last week.
 `r clean$New.Deaths[nrow(clean)]` deaths in the last week. One in `r round(IowaPop/clean[nrow(clean),]$deaths, digits = 0)` people in Iowa has died of COVID-19. There are `r sick` people actively sick and `r  percent_hospital`% (`r today$hospitalized`) are hospitalized.`r percent_ICU`% (`r ICU`) of those hospitalized are in the ICU.
 
 One year ago, we had `r format(oldactive, scientific = FALSE, big.mark=",")` actively sick and `r subset(clean, date == (day-365))$New.Positive` new positive patients per day in Iowa.
@@ -529,8 +545,11 @@ NDeaths[NDeaths$change != 0,"NewD"]
 
 ```{r}
 day = as.Date(day)
-pactive <- qplot(date, Still.Sick, data = clean[-(1:23),], geom = c("point", "smooth")) +
-ggtitle("Known Active COVID-19 Cases in Iowa") +  geom_hline(yintercept = oldactive, color = "red") 
+pactive <- qplot(date, Still.Sick, data = clean[-(1:23),], geom = "point") +
+ggtitle("Known Active COVID-19 Cases in Iowa") +
+  xlab("Date")+
+  ylab("Active Cases")+
+  geom_hline(yintercept = oldactive, color = "red") 
   # geom_text(
   #   aes(x= anydate(clean$date[1])+80, y= oldactive, 
   #       label = as.Date(day)-365, vjust = -0.5), 
@@ -570,7 +589,9 @@ dev.off()
  BlackHawk_Population <- county[county$STATE=="Iowa"&county$COUNTY=="Black Hawk",][,3]
  pBremer <-qplot(date,
                  Bremer.SS,
-                 data = tail(clean, n=120), geom = c("point", "smooth")) +
+                 data = tail(clean, n=180), 
+#                 geom = c("point", "smooth")
+                 ) +
    ggtitle("Known Active COVID-19 Cases in Bremer County")
  #    "Known Active COVID-19 Cases in Bremer County")
  #+  geom_hline(aes(yintercept=State_Average_Active)
