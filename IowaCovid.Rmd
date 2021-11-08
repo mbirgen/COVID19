@@ -87,7 +87,7 @@ hospital <- hospital[!is.na(hospital$Adair),]
 ```{r accessdata}
 ## Change Date on pdf file
 Summary <- pdf_text(
-    "access _ Iowa COVID-19 Information19.pdf") %>%
+    "access _ Iowa COVID-19 Information02.pdf") %>%
     readr::read_lines() %>% str_squish()
 Summary = Summary[!Summary == ""]
 temp1 = Summary[6] %>% ldply() 
@@ -188,7 +188,7 @@ Deaths <- Deaths[,-1]
 Active <- read.csv( "CountyData/CountyActive.csv", stringsAsFactors=FALSE)
 Active <- Active[,-1]
 templist = c("Tested", "Positive", "Recovered", "Deaths", "Active" )
-
+#
 # Tested <- Tested[-nrow(Tested),]
 # Positive <- Positive[-nrow(Positive),]
 # Recovered <- Recovered[-nrow(Recovered),]
