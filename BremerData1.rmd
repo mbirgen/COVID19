@@ -1,0 +1,128 @@
+---
+title: "Bremer County"
+output:
+  html_notebook: default
+---
+
+Welcome to the Bremer County COVID-19 Data Page.
+
+## Summary
+```{r,echo=FALSE}
+require(knitr)
+day <- Sys.Date()
+colMax <- function(data) sapply(data, max, na.rm = TRUE)
+Bremer_Population <- county[county$COUNTY=="Bremer",][,3]
+Butler_Population <- county[county$STATE=="Iowa"&county$COUNTY=="Butler",][,3]
+BlackHawk_Population <- county[county$STATE=="Iowa"&county$COUNTY=="Black Hawk",][,3]
+Linn_Population <- county[county$STATE=="Iowa"&county$COUNTY=="Linn",][,3]
+Johnson_Population <- county[county$STATE=="Iowa"&county$COUNTY=="Johnson",][,3]
+
+Bremerlastrow <- BremerData[nrow(BremerData),]
+Black.Hawklastrow <- Black.HawkData[nrow(Black.HawkData),]
+Butlerlastrow <- ButlerData[nrow(ButlerData),]
+# AC = as.integer(lastrow["Active"])
+# H = as.integer(lastrow["Hospitalized"])
+# NP = as.integer(lastrow["New.Pos"])
+# PR = as.numeric(round(lastrow["Frac.Pos"]*100, digits = 2))
+# ND = as.integer(lastrow["New.Deaths"])
+# T = as.integer(lastrow["New.Test"])
+
+Brtemp = data.frame(colMax(BremerData) == Bremerlastrow)
+BHtemp = data.frame(colMax(Black.HawkData) == Black.Hawklastrow)
+Butemp = data.frame(colMax(ButlerData) == Butlerlastrow)
+todaytemp = data.frame(colMax(clean[,-1]) == today[,-1])
+
+###########Risk Calculation#####################
+groupsize = 15
+
+
+Risk <- Risk %>% mutate(Bremer.Prob = Bremerlastrow$Active/Bremer_Population 
+, 'Black.Hawk.Prob' = Black.Hawklastrow$Active/BlackHawk_Population, 
+'Butler.Prob' = Butlerlastrow$Active/Butler_Population,
+'WSR.Prob' = (Butlerlastrow$Active+ Bremerlastrow$Active)/(Butler_Population+ Bremer_Population), 
+'Linn.Prob' = LinnData[nrow(LinnData),]$Active/Linn_Population,
+'Johnson.Prob' = JohnsonData[nrow(JohnsonData),]$Active/Johnson_Population)
+Risk = Risk %>% mutate(
+  Bremer.Risk = 1-(1-Bremer.Prob*5)^groupsize,
+  Black.Hawk.Risk = 1-(1-Black.Hawk.Prob*5)^groupsize,
+  Butler.Risk = 1-(1-Butler.Prob*5)^groupsize,
+  WSR.Risk = 1-(1-WSR.Prob*5)^groupsize,
+  Johnson.Risk = 1-(1-Johnson.Prob*5)^groupsize,
+  Linn.Risk = 1-(1-Linn.Prob*5)^groupsize
+  )
+
+
+```
+`r day`: `r as.integer(Bremerlastrow$Active)` active cases `r if(Brtemp$Active) {" (record)"}` in Bremer County, IA today. If the current infection trends continue, in 4 weeks we will have `r as.integer(Bremerlastrow["New.Pos"]*4)` active cases.
+
+If you are in a group of `r groupsize` random people in Bremer County there is a `r round(Risk$Bremer.Risk*100, digits = 2)[1,]`% chance someone in the group is positive. One in `r round(Bremer_Population/Bremerlastrow$Deaths, digits = 0)[1,]` people in Bremer County has died of COVID-19.
+
+In the last 7 days: `r as.integer(Bremerlastrow$New.Pos)` new positive cases`r if(Brtemp$New.Pos) {" (record)"}`, `r as.integer(Bremerlastrow["New.Deaths"])` new death(s) and `r as.integer(Bremerlastrow$New.Test)` tests.
+ 
+ One year ago, we had `r subset(BremerData, date == (day-365))$Active` active cases and  `r subset(BremerData, date == (day-365))$New.Pos` new positive patients in Bremer County.
+ 
+***
+ `r as.integer(Butlerlastrow["Active"])` active cases`r if(Butemp$Active) {" (record)"}` in Butler County, IA today. If the current infection trends continue, in 4 weeks we will have `r as.integer(Butlerlastrow["New.Pos"]*4)` active cases. If you are in a group of `r groupsize` people in Butler County there is a `r round(Risk$Butler.Risk*100, digits = 2)[1,]`% chance someone in the group is positive. One in `r round(Butler_Population/Butlerlastrow$Deaths, digits = 0)[1,]` people in Butler County has died of COVID-19.
+ 
+In the last 7 days: `r as.integer(Butlerlastrow["New.Pos"])` new positive cases, `r as.integer(Butlerlastrow["New.Deaths"])` new death(s) and `r as.integer(Butlerlastrow["New.Test"])` new people tested.
+
+One year ago, we had `r subset(ButlerData, date == (day-365))$Active` active cases and  `r subset(ButlerData, date == (day-365))$New.Pos` new positive patients in Butler County. 
+
+ ***
+ `r as.integer(Black.Hawklastrow["Active"])` active cases`r if(BHtemp$Active) {" (record)"}` in Black Hawk County, IA today. If the current infection trends continue, in 4 weeks we will have `r as.integer(Black.Hawklastrow["New.Pos"])*4` active cases. If you are in a group of `r groupsize` people in Black Hawk County there is a `r round(Risk$Black.Hawk.Risk*100, digits = 2)[1,]`% chance someone in the group is positive. One in `r round(BlackHawk_Population/Black.Hawklastrow$Deaths, digits = 0)[1,]` people in Black Hawk County has died of COVID-19.
+ 
+In the last 7 days: `r as.integer(Black.Hawklastrow["New.Pos"])` new positive cases`r if(BHtemp$New.Pos) {" (record)"}`, `r as.integer(Black.Hawklastrow["New.Deaths"])` new death(s) and `r as.integer(Black.Hawklastrow["New.Test"])` new people tested.
+
+One year ago, we had `r subset(Black.HawkData, date == (day-365))$Active` active cases and  `r subset(Black.HawkData, date == (day-365))$New.Pos` new positive patients in Black Hawk County. 
+
+ 
+```{r, echo = False}
+require(reshape2)
+mydate <- Sys.Date()
+
+Bremer_Population <- county[county$COUNTY=="Bremer",][,3]
+Butler_Population <- county[county$STATE=="Iowa"&county$COUNTY=="Butler",][,3]
+BlackHawk_Population <- county[
+    county$STATE=="Iowa"&county$COUNTY=="Black Hawk",
+    ][,3]
+
+year_reference = subset(BremerData, date == (day-365))$Active/Bremer_Population*10^5
+
+temp = clean[,c("date","Bremer.SS", "Butler.SS", "BlackHawk.SS")]
+temp = temp %>% mutate(Bremer = Bremer.SS/Bremer_Population$Population*100000,
+                       Butler = Butler.SS/Butler_Population$Population* 100000,
+                       BlackHawk = BlackHawk.SS/BlackHawk_Population$Population * 100000)
+temp = tail(temp, n=90)
+mtemp = melt(temp, id.vars = "date", 
+             measure.vars = c('Bremer', 'Butler', 'BlackHawk'))
+printplot <- qplot(as.Date(date), value, color = variable, data = mtemp, geom = c("point", "smooth")) +
+    ylab("Cases per 100,000") +
+    labs(color = "County", title = paste("Active Cases Per 100,000", mydate))
+  # +geom_hline(yintercept = year_reference, 
+  #            color = "red") + 
+  # geom_text(
+  #   aes(x= temp$date[1]+20, y= year_reference, 
+  #       label = day-365, vjust = -0.5), 
+  #   colour = "black")
+
+print(printplot)
+ggsave(paste(day,"BBBCounties.png"), plot = printplot)
+# ggsave("BBBCounties.png")
+# 
+png(paste(day,"BBBCounties.png"))
+print(printplot)
+dev.off()
+```
+
+
+Here is the latest information availible as of `r  Sys.Date()` :
+```{r data0, echo = FALSE}
+# colnames(BremerData) = CountyDataLongNames
+lastrow <- BremerData[nrow(BremerData),]
+kable(t(lastrow[-1]), digits = 2)
+```
+
+```{r data1, echo = FALSE}
+kable(BremerData[,1:7])
+```
+
