@@ -95,7 +95,8 @@ temp = temp %>% mutate(Bremer = Bremer.SS/Bremer_Population$Population*100000,
 temp = tail(temp, n=90)
 mtemp = melt(temp, id.vars = "date", 
              measure.vars = c('Bremer', 'Butler', 'BlackHawk'))
-printplot <- qplot(as.Date(date), value, color = variable, data = mtemp, geom = c("point", "smooth")) +
+printplot <- qplot(as.Date(date), value, color = variable, data = mtemp, geom = "point") +
+  geom_smooth(span = 0.3, se = TRUE) +
     ylab("Cases per 100,000") +
     labs(color = "County", title = paste("Active Cases Per 100,000", mydate))
   # +geom_hline(yintercept = year_reference, 

@@ -4,7 +4,7 @@ author: "Mariah Birgen"
 output: html_notebook
 ---
 
-```{r initialization, results='hide'}
+```{r initialization, results='hide', echo=FALSE}
  
  library(dplyr)
  library(lubridate)
@@ -22,7 +22,7 @@ colMax <- function(data) sapply(data, max, na.rm = TRUE)
 ```
 
 Load data
-```{r loadcounty, results='hide'}
+```{r loadcounty, results='hide', echo=FALSE}
 library(readr)
 county = read_csv("censusCounties.csv")
 ## Select data for only Iowa Counties
@@ -87,23 +87,25 @@ county = subset(county, STATE == "Iowa")
 ```{r accessdata}
 ## Change Date on pdf file
 Summary <- pdf_text(
-    "access _ Iowa COVID-19 Information16.pdf") %>%
+    "access _ Iowa COVID-19 Information28.pdf") %>%
     readr::read_lines() %>% str_squish()
 Summary = Summary[!Summary == ""]
 temp1 = Summary[6] %>% ldply() 
 date = as.character(mdy(temp1[1]))
-
+# Summary[79] = paste(Summary[79], Summary[80])
 Summary <- str_remove_all(Summary, " Translate") %>% 
     str_remove_all("Translate")
+# Summary[79] = paste(Summary[79], Summary[80])
 # CountyDataOld <- Summary[43:146] %>%
 # strsplit("(?= [A-Za-z])(?<=[0-9])|(?= [0-9])(?<=[A-Za-z])", perl=TRUE)
-CountyDataOld <- Summary[45:148] %>%
+CountyDataOld <- Summary[46:151] %>%
     strsplit("(?= [A-Za-z])(?<=[0-9])|(?= [0-9])(?<=[A-Za-z])", perl=TRUE)
 # CountyDataOld <- CountyDataOld[-c(10:11,71:72)]
 # temp1 = CountyDataOld[44:45]
 # temp2 = plyr::ldply(temp1[1])
 # temp2[,2]=paste0(temp2[,2],plyr::ldply(temp1[2]) )
-CountyDataOld <- CountyDataOld[-c(38:39,91,93:94)]
+CountyDataOld <- CountyDataOld[-c(35:37,89,91:92)]
+# CountyDataOld <- CountyDataOld[-c(38:39,91,93:94)]
 CountyDataOld <- plyr::ldply(CountyDataOld)
 # ]CountyDataOld = rbind(CountyDataOld,temp2)
 temp <- strsplit(CountyDataOld[,2], " ", fixed = TRUE)
@@ -117,7 +119,7 @@ CountyDataOld <- as.data.frame(CountyDataOld) %>%
     arrange(County)%>%
     mutate(Active = Individuals.Positive - Total.Recovered - Total.Deaths,
            positivity = Individuals.Positive/Individuals.Tested,
-           date = as.Date(mydate),
+           date = as.Date(date),
     )
 
 temp <-c(County = "Totals",
@@ -128,7 +130,7 @@ temp["positivity"] = as.integer(temp["Individuals.Positive"])/as.integer(temp["I
 CountyDataOld[101,] = temp
 CountyDataOld[,2:6] = sapply(CountyDataOld[,2:6], as.integer)
 CountyDataOld[,7] = sapply(CountyDataOld[,7], as.numeric)
-CountyDataOld = CountyDataOld[-100,]
+# CountyDataOld = CountyDataOld[-100,]
 write.csv(CountyDataOld, file = paste(
     'CountyData/',date,'CountyData.csv'))
 
@@ -140,11 +142,13 @@ write.csv(CountyDataOld, file = paste(
 # tempdata1 =Summary[seq(25,41, 2)]
 tempnames =Summary[seq(7,17, 2)]
 tempnames1 = Summary[seq(22,36,2)]
-tempnames2 = Summary[seq(40,42,2)]
+# tempnames2 = Summary[seq(40,42,2)]
+tempnames2 = Summary[seq(41,43,2)]
 tempnames = c(tempnames, tempnames1, tempnames2)
 tempdata =Summary[seq(8,16, 2)]
-tempdata1 =Summary[seq(21,37, 2)]
-tempdata2 =Summary[seq(41,43, 2)]
+
+tempdata1 =Summary[seq(21,35, 2)]
+tempdata2 =Summary[seq(40,44, 2)]
 tempdata = c(tempdata, tempdata1, tempdata2)
 tempdata = plyr::ldply(as.integer(
   gsub(",","",tempdata)))
@@ -159,6 +163,7 @@ if (statedata$date[nrow(statedata)] != tempdata[1]){
 statedata[nrow(statedata)+1,]=tempdata
 }
 statedata[,-1] = sapply(statedata[,-1], as.integer)
+statedata = unique(statedata)
 write.csv(statedata, file = paste(
     'CountyData/StateData.csv'), 
     row.names = FALSE)
@@ -188,10 +193,11 @@ Deaths <- Deaths[,-1]
 Active <- read.csv( "CountyData/CountyActive.csv", stringsAsFactors=FALSE)
 Active <- Active[,-1]
 templist = c("Tested", "Positive", "Recovered", "Deaths", "Active" )
-#
+# 
 # Tested <- Tested[-nrow(Tested),]
 # Positive <- Positive[-nrow(Positive),]
 # Recovered <- Recovered[-nrow(Recovered),]
+# Active <- Active[-nrow(Active),]
 # Deaths <- Deaths[-nrow(Deaths),]
 
 
@@ -201,6 +207,12 @@ if(anydate(Tested[nrow(Tested), 1]) != date){
     Recovered <- rbind(Recovered, d_county["Total.Recovered",])
     Deaths <- rbind(Deaths, d_county["Total.Deaths",])
     Active <- rbind(Active, d_county["Active",])
+} else{
+      Tested[Tested$date == date,] = d_county["Individuals.Tested",]
+    Positive[Positive$date == date,] =  d_county["Individuals.Positive",]
+    Recovered[Recovered$date==date,] =  d_county["Total.Recovered",]
+    Deaths[Deaths$date == date,] = d_county["Total.Deaths",]
+    Active[Active$date == date,] =  d_county["Active",]
 }
 
 Tested[,-1] = sapply(Tested[,-1], as.integer)
@@ -304,6 +316,7 @@ covid19[nrow(covid19)+1, "date"] =
   as.character(date)
 }
 i=as.Date(date)
+# i = as.Date("2021-11-22")
 covid19[covid19$date == i,
         c("Bremer.Positive", 
           "Bremer.Recovered", "Bremer.Death")]=
@@ -326,20 +339,18 @@ covid19[covid19$date == i,
 
 
     covid19[covid19$date == as.Date(date),"Total.Tested"] = 
-        tempdata[1,"Individuals Tested"]
+        Tested[anydate(Tested$date) == date,"Totals"]
     
     covid19[covid19$date == as.Date(date),"positive"] = 
-        tempdata[1,"Total Confirmed Cases"]
+        Positive[anydate(Positive$date) == date,"Totals"]
     covid19[covid19$date == as.Date(date),"Recovered"] = 
-        tempdata[1,"Recovering"]
-    covid19[covid19$date == as.Date(date),"deaths"] = 
-        tempdata[1,"Deceased"]
+        Recovered[anydate(Recovered$date) == date,"Totals"]
+    covid19[covid19$date == as.Date(date),"deaths"] = Deaths[anydate(Deaths$date) == date,"Totals"]
     covid19[covid19$date == as.Date(date),"hospitalized"] = 
-        tempdata[1,"Hospitalized"]
+        statedata[anydate(statedata$date)==date, "Hospitalized"]
     covid19[covid19$date == as.Date(date),"ICU"] = 
-        tempdata[1,"COVID-19 Patients in ICU"]
-    covid19[covid19$date == as.Date(date),"Admit"] = 
-        tempdata[1,"COVID-19 Patients Admitted in last 24 hrs"]
+        statedata[anydate(statedata$date)==date, "COVID.19.Patients.in.ICU"]
+    covid19[covid19$date == as.Date(date),"Admit"] = statedata[anydate(statedata$date)==date, "COVID.19.Patients.Admitted.in.last.24.hrs"]
 
 covid19[-1] = sapply(covid19[,-1], as.numeric)
 covid19 = covid19 %>%
