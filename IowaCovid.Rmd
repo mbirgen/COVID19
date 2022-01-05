@@ -87,7 +87,7 @@ county = subset(county, STATE == "Iowa")
 ```{r accessdata}
 ## Change Date on pdf file
 Summary <- pdf_text(
-    "access _ Iowa COVID-19 Information28.pdf") %>%
+    "access _ Iowa COVID-19 Information04.pdf") %>%
     readr::read_lines() %>% str_squish()
 Summary = Summary[!Summary == ""]
 temp1 = Summary[6] %>% ldply() 
@@ -95,7 +95,7 @@ date = as.character(mdy(temp1[1]))
 # Summary[79] = paste(Summary[79], Summary[80])
 Summary <- str_remove_all(Summary, " Translate") %>% 
     str_remove_all("Translate")
-# Summary[79] = paste(Summary[79], Summary[80])
+Summary[79] = paste(Summary[79], Summary[80])
 # CountyDataOld <- Summary[43:146] %>%
 # strsplit("(?= [A-Za-z])(?<=[0-9])|(?= [0-9])(?<=[A-Za-z])", perl=TRUE)
 CountyDataOld <- Summary[46:151] %>%
