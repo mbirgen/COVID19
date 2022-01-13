@@ -55,23 +55,25 @@ Risk = Risk %>% mutate(
 ```
 `r day`: `r as.integer(Bremerlastrow$Active)` active cases `r if(Brtemp$Active) {" (record)"}` in Bremer County, IA today. If the current infection trends continue, in 4 weeks we will have `r as.integer(Bremerlastrow["New.Pos"]*4)` active cases.
 
+In the last 7 days: `r New.Positive.Tests[nrow(New.Positive.Tests),"Bremer"]` new positive tests, `r as.integer(Bremerlastrow$New.Pos)`  new positive cases`r if(Brtemp$New.Pos) {" (record)"}`, `r as.integer(Bremerlastrow["New.Deaths"])` new death(s) and `r New.Tests[nrow(New.Tests),"Bremer"]`  total tests for a test positivity rate of `r round(New.Positive.Tests[nrow(New.Positive.Tests),"Bremer"]/New.Tests[nrow(New.Tests),"Bremer"]*100, digits = 2)` percent.
+
 If you are in a group of `r groupsize` random people in Bremer County there is a `r round(Risk$Bremer.Risk*100, digits = 2)[1,]`% chance someone in the group is positive. One in `r round(Bremer_Population/Bremerlastrow$Deaths, digits = 0)[1,]` people in Bremer County has died of COVID-19.
 
-In the last 7 days: `r as.integer(Bremerlastrow$New.Pos)` new positive cases`r if(Brtemp$New.Pos) {" (record)"}`, `r as.integer(Bremerlastrow["New.Deaths"])` new death(s) and `r as.integer(Bremerlastrow$New.Test)` tests.
- 
  One year ago, we had `r subset(BremerData, date == (day-365))$Active` active cases and  `r subset(BremerData, date == (day-365))$New.Pos` new positive patients in Bremer County.
  
 ***
- `r as.integer(Butlerlastrow["Active"])` active cases`r if(Butemp$Active) {" (record)"}` in Butler County, IA today. If the current infection trends continue, in 4 weeks we will have `r as.integer(Butlerlastrow["New.Pos"]*4)` active cases. If you are in a group of `r groupsize` people in Butler County there is a `r round(Risk$Butler.Risk*100, digits = 2)[1,]`% chance someone in the group is positive. One in `r round(Butler_Population/Butlerlastrow$Deaths, digits = 0)[1,]` people in Butler County has died of COVID-19.
+ `r as.integer(Butlerlastrow["Active"])` active cases`r if(Butemp$Active) {" (record)"}` in Butler County, IA today. If the current infection trends continue, in 4 weeks we will have `r as.integer(Butlerlastrow["New.Pos"]*4)` active cases. 
  
-In the last 7 days: `r as.integer(Butlerlastrow["New.Pos"])` new positive cases, `r as.integer(Butlerlastrow["New.Deaths"])` new death(s) and `r as.integer(Butlerlastrow["New.Test"])` new people tested.
+In the last 7 days: `r New.Positive.Tests[nrow(New.Positive.Tests),"Butler"]` new positive tests, `r as.integer(Butlerlastrow["New.Pos"])` new positive cases, `r as.integer(Butlerlastrow["New.Deaths"])` new death(s) and `r New.Tests[nrow(New.Tests),"Butler"]` total tests for a test positivity rate of `r round(New.Positive.Tests[nrow(New.Positive.Tests),"Butler"]/New.Tests[nrow(New.Tests),"Butler"]*100, digits = 2)` percent.
+
+If you are in a group of `r groupsize` people in Butler County there is a `r round(Risk$Butler.Risk*100, digits = 2)[1,]`% chance someone in the group is positive. One in `r round(Butler_Population/Butlerlastrow$Deaths, digits = 0)[1,]` people in Butler County has died of COVID-19.
 
 One year ago, we had `r subset(ButlerData, date == (day-365))$Active` active cases and  `r subset(ButlerData, date == (day-365))$New.Pos` new positive patients in Butler County. 
 
  ***
  `r as.integer(Black.Hawklastrow["Active"])` active cases`r if(BHtemp$Active) {" (record)"}` in Black Hawk County, IA today. If the current infection trends continue, in 4 weeks we will have `r as.integer(Black.Hawklastrow["New.Pos"])*4` active cases. If you are in a group of `r groupsize` people in Black Hawk County there is a `r round(Risk$Black.Hawk.Risk*100, digits = 2)[1,]`% chance someone in the group is positive. One in `r round(BlackHawk_Population/Black.Hawklastrow$Deaths, digits = 0)[1,]` people in Black Hawk County has died of COVID-19.
  
-In the last 7 days: `r as.integer(Black.Hawklastrow["New.Pos"])` new positive cases`r if(BHtemp$New.Pos) {" (record)"}`, `r as.integer(Black.Hawklastrow["New.Deaths"])` new death(s) and `r as.integer(Black.Hawklastrow["New.Test"])` new people tested.
+In the last 7 days: `r New.Positive.Tests[nrow(New.Positive.Tests),"Black.Hawk"]` new positive tests, `r as.integer(Black.Hawklastrow["New.Pos"])` new positive cases`r if(BHtemp$New.Pos) {" (record)"}`, `r as.integer(Black.Hawklastrow["New.Deaths"])` new death(s) and and `r New.Tests[nrow(New.Tests),"Black.Hawk"]` total tests for a test positivity rate of `r round(New.Positive.Tests[nrow(New.Positive.Tests),"Black.Hawk"]/New.Tests[nrow(New.Tests),"Black.Hawk"]*100, digits = 2)` percent.
 
 One year ago, we had `r subset(Black.HawkData, date == (day-365))$Active` active cases and  `r subset(Black.HawkData, date == (day-365))$New.Pos` new positive patients in Black Hawk County. 
 

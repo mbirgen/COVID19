@@ -87,7 +87,7 @@ county = subset(county, STATE == "Iowa")
 ```{r accessdata}
 ## Change Date on pdf file
 Summary <- pdf_text(
-    "access _ Iowa COVID-19 Information04.pdf") %>%
+    "access _ Iowa COVID-19 Information11.pdf") %>%
     readr::read_lines() %>% str_squish()
 Summary = Summary[!Summary == ""]
 temp1 = Summary[6] %>% ldply() 
@@ -95,9 +95,12 @@ date = as.character(mdy(temp1[1]))
 # Summary[79] = paste(Summary[79], Summary[80])
 Summary <- str_remove_all(Summary, " Translate") %>% 
     str_remove_all("Translate")
-Summary[79] = paste(Summary[79], Summary[80])
-# CountyDataOld <- Summary[43:146] %>%
-# strsplit("(?= [A-Za-z])(?<=[0-9])|(?= [0-9])(?<=[A-Za-z])", perl=TRUE)
+# Summary[79] = paste(Summary[79], Summary[80])
+CountyDataOld <- Summary[46:150]
+CountyDataOld <- CountyDataOld %>% 
+strsplit("(?= [A-Za-z])(?<=[0-9])|(?= [0-9])(?<=[A-Za-z])", perl=TRUE)
+
+
 CountyDataOld <- Summary[46:151] %>%
     strsplit("(?= [A-Za-z])(?<=[0-9])|(?= [0-9])(?<=[A-Za-z])", perl=TRUE)
 # CountyDataOld <- CountyDataOld[-c(10:11,71:72)]
@@ -105,12 +108,13 @@ CountyDataOld <- Summary[46:151] %>%
 # temp2 = plyr::ldply(temp1[1])
 # temp2[,2]=paste0(temp2[,2],plyr::ldply(temp1[2]) )
 CountyDataOld <- CountyDataOld[-c(35:37,89,91:92)]
-# CountyDataOld <- CountyDataOld[-c(38:39,91,93:94)]
-CountyDataOld <- plyr::ldply(CountyDataOld)
+CountyDataOld <- CountyDataOld[-c(35:36,88, 90:91)]
+CountyDataOld1 <- plyr::ldply(CountyDataOld[-100])
+CountyDataOld1[100,] = CountyDataOld[[100]]
 # ]CountyDataOld = rbind(CountyDataOld,temp2)
-temp <- strsplit(CountyDataOld[,2], " ", fixed = TRUE)
+temp <- strsplit(CountyDataOld1[,2], " ", fixed = TRUE)
 temp <- plyr::ldply(temp)
-temp[,1] = CountyDataOld[,1]
+temp[,1] = CountyDataOld1[,1]
 colnames(temp) = c("County", "Individuals.Tested","Individuals.Positive", 
                    "Total.Recovered", "Total.Deaths")
 CountyDataOld <- temp
@@ -360,6 +364,12 @@ covid19 = covid19 %>%
 
 write.csv(covid19, "covid19.csv",row.names = FALSE)
 
+```
+
+```{r}
+qplot(date, New.Positive.Tests, data = tail(covid19, n=40))+geom_smooth(span = 0.3, se = TRUE) 
+
+qplot(date, hospitalized, data = tail(covid19, n=40))+geom_smooth(span = 0.3, se = TRUE) 
 ```
 
 
