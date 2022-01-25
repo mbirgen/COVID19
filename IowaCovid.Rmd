@@ -87,7 +87,7 @@ county = subset(county, STATE == "Iowa")
 ```{r accessdata}
 ## Change Date on pdf file
 Summary <- pdf_text(
-    "access _ Iowa COVID-19 Information11.pdf") %>%
+    "access _ Iowa COVID-19 Information18.pdf") %>%
     readr::read_lines() %>% str_squish()
 Summary = Summary[!Summary == ""]
 temp1 = Summary[6] %>% ldply() 
@@ -107,7 +107,7 @@ CountyDataOld <- Summary[46:151] %>%
 # temp1 = CountyDataOld[44:45]
 # temp2 = plyr::ldply(temp1[1])
 # temp2[,2]=paste0(temp2[,2],plyr::ldply(temp1[2]) )
-CountyDataOld <- CountyDataOld[-c(35:37,89,91:92)]
+# CountyDataOld <- CountyDataOld[-c(35:37,89,91:92)]
 CountyDataOld <- CountyDataOld[-c(35:36,88, 90:91)]
 CountyDataOld1 <- plyr::ldply(CountyDataOld[-100])
 CountyDataOld1[100,] = CountyDataOld[[100]]
@@ -369,7 +369,7 @@ write.csv(covid19, "covid19.csv",row.names = FALSE)
 ```{r}
 qplot(date, New.Positive.Tests, data = tail(covid19, n=40))+geom_smooth(span = 0.3, se = TRUE) 
 
-qplot(date, hospitalized, data = tail(covid19, n=40))+geom_smooth(span = 0.3, se = TRUE) 
+qplot(date, hospitalized, data = tail(covid19, n=80))+geom_smooth(span = 0.3, se = TRUE) 
 ```
 
 
@@ -411,7 +411,7 @@ clean <- clean %>% mutate(
 today <- clean[nrow(clean),]
 day <- today$date
 new_pos <- today$New.Positive
-percent_pos <- round(clean$New.Percent.Positive[nrow(clean)]*100, digits = 1)
+percent_pos <- round(today$New.Positive/today$New.Positive.Tests*100, digits = 1)
 
 percent_pos7 <- round(clean$Week.Positivity.Rate[nrow(clean)-4]*100, digits = 1)
 
@@ -421,6 +421,8 @@ ICU <- today$ICU
 percent_ICU <- round(today$ICU/today$hospitalized*100, digits = 1)
 sick <- format(today$Still.Sick, scientific = FALSE, big.mark=",")
 IowaPop <- 3155070
+
+test.positivity = round(sum(New.Positive.Tests["Total.Positive.Tests",-1])/sum(New.Tests["Total.Tests",-1])*100,digits = 1)
 
 clean = clean %>% mutate(
   Individuals.Reported = Individuals.Tested - lag(Individuals.Tested),
@@ -528,7 +530,7 @@ write.csv(CompleteVaccination, "CountyData/Vaccine.csv", row.names = F)
 
 # Iowa COVID-19 Summary `r day`
 
-Today we had `r format(new_pos, scientific = FALSE, big.mark=",")` new positive patients (average of `r week.new.pos` new cases per day) which is `r percent_pos`% of the newly tested people recorded in the last week.
+Today we had `r format(new_pos, scientific = FALSE, big.mark=",")` new positive patients (average of `r week.new.pos` new cases per day) which is `r percent_pos`% of the newly tested people and `r test.positivity`% of all tests recorded in the last week.
 `r clean$New.Deaths[nrow(clean)]` deaths in the last week. One in `r round(IowaPop/clean[nrow(clean),]$deaths, digits = 0)` people in Iowa has died of COVID-19. There are `r sick` people actively sick and `r  percent_hospital`% (`r today$hospitalized`) are hospitalized, `r percent_ICU`% (`r ICU`) of those hospitalized are in the ICU.
 
 One year ago, we had `r format(oldactive, scientific = FALSE, big.mark=",")` actively sick and `r subset(clean, date == (day-365))$New.Positive` new positive patients per day in Iowa.
@@ -613,14 +615,15 @@ dev.off()
                  data = tail(clean, n=180), 
 #                 geom = c("point", "smooth")
                  ) +
-   ggtitle("Known Active COVID-19 Cases in Bremer County")
+   ggtitle("Known Active COVID-19 Cases in Bremer County") +
+   geom_smooth(span = 0.3, se = TRUE)
  #    "Known Active COVID-19 Cases in Bremer County")
  #+  geom_hline(aes(yintercept=State_Average_Active)
  pButler <-qplot(date,
                  #Butler.SS/Butler_Population*100000,
                  Butler.SS,
-                 data = tail(clean, n=120), geom = c("point", "smooth")) +
-   ggtitle("Known Active COVID-19 Cases in Butler County")
+                 data = tail(clean, n=120), geom = "point") +
+   ggtitle("Known Active COVID-19 Cases in Butler County") + geom_smooth(span = 0.3, se = TRUE) 
 ggtitle("Known Active COVID-19 Cases in Butler County Per 100,000 People")
 #+  geom_hline(aes(yintercept=State_Average_Active)
  png(paste(day,"pButler.png"))
@@ -630,7 +633,8 @@ ggtitle("Known Active COVID-19 Cases in Butler County Per 100,000 People")
  pBlackHawk <-qplot(date,
                  #Butler.SS/Butler_Population*100000,
                  BlackHawk.SS,
-                 data = tail(clean, n=120), geom = c("point", "smooth")) +
+                 data = tail(clean, n=120), geom = "point") +
+   geom_smooth(span = 0.3, se = TRUE) +
    ggtitle("Known Active COVID-19 Cases in Black Hawk County")
  png(paste(day,"pBlackHawk.png"))
  pBlackHawk
