@@ -87,7 +87,7 @@ county = subset(county, STATE == "Iowa")
 ```{r accessdata}
 ## Change Date on pdf file
 Summary <- pdf_text(
-    "access _ Iowa COVID-19 Information25.pdf") %>%
+    "access _ Iowa COVID-19 Information01.pdf") %>%
     readr::read_lines() %>% str_squish()
 Summary = Summary[!Summary == ""]
 temp1 = Summary[6] %>% ldply() 
@@ -410,6 +410,7 @@ clean <- clean %>% mutate(
 ```{r, echo = FALSE}
 today <- clean[nrow(clean),]
 day <- today$date
+temp = tail(statedata[,"Individuals.Tested"],n=2)
 new_pos <- today$New.Positive
 percent_pos <- round(today$New.Positive/today$New.Positive.Tests*100, digits = 1)
 
