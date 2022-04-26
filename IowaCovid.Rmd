@@ -30,173 +30,51 @@ county = subset(county, STATE == "Iowa")
 ```
 
 
-```{r hospitalization, echo=FALSE}
-# mydate <- Sys.Date()
-# hosp_by_county <- pdf_text("hosp_by_county.pdf") %>%
-#     readr::read_lines() %>% str_squish()
-# # hosp_by_county <-    str_squish(hosp_by_county)
-# temp <- hosp_by_county
-# hosp_by_county <- temp[5:37]
-# temp1 = strsplit(temp[41]," ") %>% ldply()
-# date = as.character(mdy(temp1[3]))
-# 
-# hosp_by_county <-hosp_by_county %>%
-#     strsplit("(?= [A-Za-z])(?<=[0-9])|(?= [0-9])(?<=[A-Za-z])", perl=TRUE)
-# 
-# hosp_by_county_df <- plyr::ldply(hosp_by_county)
-# temp1 <- hosp_by_county_df[,1:2]
-# temp2 <- hosp_by_county_df[,3:4]
-# temp3 <- hosp_by_county_df[,5:6]
-# colnames(temp2) <- names(temp1)
-# colnames(temp3) <- names(temp1)
-# hosp_by_county <- rbind(temp1, temp2, temp3)
-# colnames(hosp_by_county) <- c("County", "Hospitalized")
-# hosp_by_county <-hosp_by_county %>%
-#     mutate(Hospitalized = as.numeric(Hospitalized))
-# temp1 = sum(hosp_by_county[,2])
-# hosp_by_county <- rbind(hosp_by_county, c("Totals", temp1))
-# rm(temp1, temp2, temp3, hosp_by_county_df)
-# 
-# rownames(hosp_by_county) <- hosp_by_county[,1]
-# 
-# hospital <- as.data.frame(read.csv("CountyHospitilizations.csv"))
-# hospital <- hospital[,-1]
-# #hospital[,1] = mdy(hospital[,1])
-# h_county <-  t(hosp_by_county[,2])
-# 
-# colnames(h_county) <-  hosp_by_county[,1]
-# h_county <- cbind(date = c(date, h_county))
-# rownames(h_county) <- colnames(hospital)
-# h_county <- t(h_county)
-# # if(mydate1== date){
-#     hospital <- rbind(hospital, h_county)
-# # } else {
-# #   temp <-hospital[,1]== date
-# #   temp1 <- (1:600)[temp][1]
-# #   hospital[temp1,] <- h_county
-# #   if(as.character(hospital[nrow(hospital),1]) != mydate1){
-#   # hospital <- rbind.fill(hospital, data.frame(Date = date))
-# #   }
-# # }
-# hospital <- unique(hospital)
-# 
-# write.csv(hospital, "CountyHospitilizations.csv")
-# hospital <- hospital[!is.na(hospital$Adair),]
-```
-
-```{r accessdata}
-## Change Date on pdf file
-Summary <- pdf_text(
-    "access _ Iowa COVID-19 Information01.pdf") %>%
-    readr::read_lines() %>% str_squish()
-Summary = Summary[!Summary == ""]
-temp1 = Summary[6] %>% ldply() 
-date = as.character(mdy(temp1[1]))
-# Summary[79] = paste(Summary[79], Summary[80])
-Summary <- str_remove_all(Summary, " Translate") %>% 
-    str_remove_all("Translate")
-# Summary[79] = paste(Summary[79], Summary[80])
-CountyDataOld <- Summary[46:150]
-CountyDataOld <- CountyDataOld %>% 
-strsplit("(?= [A-Za-z])(?<=[0-9])|(?= [0-9])(?<=[A-Za-z])", perl=TRUE)
-
-
-# CountyDataOld <- Summary[46:151] %>%
-#     strsplit("(?= [A-Za-z])(?<=[0-9])|(?= [0-9])(?<=[A-Za-z])", perl=TRUE)
-# CountyDataOld <- CountyDataOld[-c(10:11,71:72)]
-# temp1 = CountyDataOld[44:45]
-# temp2 = plyr::ldply(temp1[1])
-# temp2[,2]=paste0(temp2[,2],plyr::ldply(temp1[2]) )
-# CountyDataOld <- CountyDataOld[-c(35:37,89,91:92)]
-CountyDataOld <- CountyDataOld[-c(35:36,88, 90:91)]
-CountyDataOld1 <- plyr::ldply(CountyDataOld[-100])
-CountyDataOld1[100,] = CountyDataOld[[100]]
-# ]CountyDataOld = rbind(CountyDataOld,temp2)
-temp <- strsplit(CountyDataOld1[,2], " ", fixed = TRUE)
-temp <- plyr::ldply(temp)
-temp[,1] = CountyDataOld1[,1]
-colnames(temp) = c("County", "Individuals.Tested","Individuals.Positive", 
-                   "Total.Recovered", "Total.Deaths")
-CountyDataOld <- temp
-CountyDataOld[-1] = sapply(CountyDataOld[-1], as.integer)
-CountyDataOld <- as.data.frame(CountyDataOld) %>%
-    arrange(County)%>%
-    mutate(Active = Individuals.Positive - Total.Recovered - Total.Deaths,
-           positivity = Individuals.Positive/Individuals.Tested,
-           date = as.Date(date),
-    )
-
-temp <-c(County = "Totals",
-         colSums(CountyDataOld[,2:6]),
-         positivity = NA,
-         date = as.character(date))
-temp["positivity"] = as.integer(temp["Individuals.Positive"])/as.integer(temp["Individuals.Tested"])
-CountyDataOld[101,] = temp
-CountyDataOld[,2:6] = sapply(CountyDataOld[,2:6], as.integer)
-CountyDataOld[,7] = sapply(CountyDataOld[,7], as.numeric)
-# CountyDataOld = CountyDataOld[-100,]
-write.csv(CountyDataOld, file = paste(
-    'CountyData/',date,'CountyData.csv'))
-
-#More interesting information
-# tempnames =Summary[seq(7,21, 2)]
-# tempnames1 = Summary[seq(26,40,2)]
-# tempnames = c(tempnames, tempnames1)
-# tempdata =Summary[seq(8,20, 2)]
-# tempdata1 =Summary[seq(25,41, 2)]
-tempnames =Summary[seq(7,17, 2)]
-tempnames1 = Summary[seq(22,36,2)]
-# tempnames2 = Summary[seq(40,42,2)]
-tempnames2 = Summary[seq(41,43,2)]
-tempnames = c(tempnames, tempnames1, tempnames2)
-tempdata =Summary[seq(8,16, 2)]
-
-tempdata1 =Summary[seq(21,35, 2)]
-tempdata2 =Summary[seq(40,44, 2)]
-tempdata = c(tempdata, tempdata1, tempdata2)
-tempdata = plyr::ldply(as.integer(
-  gsub(",","",tempdata)))
-tempdata = t(tempdata)
-colnames(tempdata) <- tempnames
-tempdata = cbind("date"=date, tempdata)
-statedata <- read.csv(paste(
-  'CountyData/StateData.csv'),
-                   stringsAsFactors = FALSE)
-# statedata = rbind(statedata, tempdata)
-if (statedata$date[nrow(statedata)] != tempdata[1]){
-statedata[nrow(statedata)+1,]=tempdata
-}
-statedata[,-1] = sapply(statedata[,-1], as.integer)
-statedata = unique(statedata)
-write.csv(statedata, file = paste(
-    'CountyData/StateData.csv'), 
-    row.names = FALSE)
-```
-
 ```{r storedata1, echo=FALSE}
+date = "2022-04-20"
+source("LoadSummary.R")
+
 ##Add data to big csv files
-d_county <- t(CountyDataOld)
-county_names <- d_county[1,]
+temp = c(County = "Totals",
+                   as.integer(colSums(TestsNew[2:4])))
+# temp[2:3] = sapply(temp[2:3], as.integer)
+TestsNew1 = TestsNew %>%
+  select("County", "Total.Positive.Tests","Total.Positive.Cases", "Total.Deaths")%>%
+  rbind(temp)
+
+TestsNew1 =rbind("date"= as.character(date),TestsNew1)
+d_county <- t(TestsNew1)
+
+# d_county <- t(CountyDataOld)
+# county_names <- d_county[1,]
 colnames(d_county) <- d_county[1,]
 d_county = d_county[-1,]
-# colnames(d_county)[1] <- "date"
-d_county[1:5,] = sapply(d_county[1:5,], as.integer)
-# d_county[9,] = sapply(d_county[9,], as.numeric)
-# d_county <- as.data.frame(d_county)%>%
-#     mutate(Total = Reduce(`+`, .))
-d_county <- cbind(date=as.character(date),d_county)
+colnames(d_county)[1] <- "date"
+d_county[,-1] = sapply(d_county[,-1], as.integer)
+# # d_county[9,] = sapply(d_county[9,], as.numeric)
+# # d_county <- as.data.frame(d_county)%>%
+# #     mutate(Total = Reduce(`+`, .))
+# d_county <- cbind(date=as.character(date),d_county)
 
-Tested <- read.csv( "CountyData/CountyTests.csv", stringsAsFactors=FALSE)
-Tested <- Tested[,-1]
+# Tested <- read.csv( "CountyData/CountyTests.csv", stringsAsFactors=FALSE)
+# Tested <- Tested[,-1]
 Positive <- read.csv( "CountyData/CountyPositive.csv", stringsAsFactors=FALSE)
 Positive <- Positive[,-1]
-Recovered <- read.csv( "CountyData/CountyRecovered.csv", stringsAsFactors=FALSE)
-Recovered <- Recovered[,-1]
+Positive.Tests <- read.csv( "CountyData/CountyPositive.csv", stringsAsFactors=FALSE)
+Positive.Tests <- Positive.Tests[,-1]
+# Recovered <- read.csv( "CountyData/CountyRecovered.csv", stringsAsFactors=FALSE)
+# Recovered <- Recovered[,-1]
 Deaths <- read.csv( "CountyData/CountyDeaths.csv", stringsAsFactors=FALSE)
 Deaths <- Deaths[,-1]
-Active <- read.csv( "CountyData/CountyActive.csv", stringsAsFactors=FALSE)
-Active <- Active[,-1]
-templist = c("Tested", "Positive", "Recovered", "Deaths", "Active" )
+# Active <- read.csv( "CountyData/CountyActive.csv", stringsAsFactors=FALSE)
+# Active <- Active[,-1]
+templist = c(
+  # "Tested", 
+  "Positive", 
+  #"Recovered", 
+  "Deaths"
+  #, "Active" 
+  )
 # 
 # Tested <- Tested[-nrow(Tested),]
 # Positive <- Positive[-nrow(Positive),]
@@ -205,89 +83,79 @@ templist = c("Tested", "Positive", "Recovered", "Deaths", "Active" )
 # Deaths <- Deaths[-nrow(Deaths),]
 
 
-if(anydate(Tested[nrow(Tested), 1]) != date){
-    Tested <- rbind(Tested, d_county["Individuals.Tested",])
-    Positive <- rbind(Positive, d_county["Individuals.Positive",])
-    Recovered <- rbind(Recovered, d_county["Total.Recovered",])
+if(anydate(Positive[nrow(Positive), 1]) != date){
+    # Tested <- rbind(Tested, d_county["Individuals.Tested",])
+    Positive <- rbind(Positive, d_county["Total.Positive.Cases",])
+    # Recovered <- rbind(Recovered, d_county["Total.Recovered",])
     Deaths <- rbind(Deaths, d_county["Total.Deaths",])
-    Active <- rbind(Active, d_county["Active",])
+    # Active <- rbind(Active, d_county["Active",])
+        Positive.Tests <- rbind(Positive.Tests, d_county["Total.Positive.Tests",])
 } else{
-      Tested[Tested$date == date,] = d_county["Individuals.Tested",]
-    Positive[Positive$date == date,] =  d_county["Individuals.Positive",]
-    Recovered[Recovered$date==date,] =  d_county["Total.Recovered",]
+      # Tested[Tested$date == date,] = d_county["Individuals.Tested",]
+    Positive[Positive$date == date,] =  d_county["Total.Positive.Cases",]
+    # Recovered[Recovered$date==date,] =  d_county["Total.Recovered",]
     Deaths[Deaths$date == date,] = d_county["Total.Deaths",]
-    Active[Active$date == date,] =  d_county["Active",]
+    # Active[Active$date == date,] =  d_county["Active",]
+    Positive.Tests[Positive.Tests$date == date,] =  d_county["Total.Positive.Tests",]
 }
 
-Tested[,-1] = sapply(Tested[,-1], as.integer)
+# Tested[,-1] = sapply(Tested[,-1], as.integer)
 Positive[,-1] = sapply(Positive[,-1], as.integer)
-Recovered[,-1] = sapply(Recovered[,-1], as.integer)
+Positive.Tests[,-1] = sapply(Positive.Tests[,-1], as.integer)
+# Recovered[,-1] = sapply(Recovered[,-1], as.integer)
 Deaths[,-1] = sapply(Deaths[,-1], as.integer)
-Active[,-1] = sapply(Active[,-1], as.integer)
+# Active[,-1] = sapply(Active[,-1], as.integer)
 
-trows <- nrow(Tested)
-newTest <- Tested[trows,-1]-Tested[trows-1,-1]
+trows <- nrow(Positive)
+# newTest <- Tested[trows,-1]-Tested[trows-1,-1]
 newPos <- Positive[trows,-1]-Positive[trows-1,-1]
-newRec <- Recovered[trows,-1]-Recovered[trows-1,-1]
+# newRec <- Recovered[trows,-1]-Recovered[trows-1,-1]
 newDeath <- Deaths[trows,-1]-Deaths[trows-1,-1]
 # PerPos7 <- (Positive[trows,-1]-
 #                 Positive[trows-7,-1])/
 #     (Tested[trows,-1]-
 #          Tested[trows-7,-1])
 
-county_names <- colnames(Tested)
+county_names <- colnames(Positive)
 county_names <- county_names[county_names != "Pending Investigation"]
 county_names <- county_names[county_names != "Pending.Investigation"]
 # county_names <- county_names[-76]
 county_names <- gsub(" ", ".", county_names)
 county_names <- gsub("'", ".", county_names)
-dates <- anydate(Tested[,1]    )
-if(!("Pending.Investigation" %in% names(hospital))){
-    target = which(names(hospital)== "Palo.Alto")
-    hospital = cbind(hospital[,1:target,drop=F], data.frame("Pending.Investigation"=""), hospital[,(target+1):length(hospital),drop=F])
-}
+dates <- anydate(Positive[,1]    )
+# if(!("Pending.Investigation" %in% names(hospital))){
+#     target = which(names(hospital)== "Palo.Alto")
+#     hospital = cbind(hospital[,1:target,drop=F], data.frame("Pending.Investigation"=""), hospital[,(target+1):length(hospital),drop=F])
+# }
 
 for(i in 2:(length(county_names))){
     i = county_names[i]
-    test <- Tested[,i]
-    temp = length(test)
-    pos <- as.numeric(Positive[,i])
-    rec <- as.numeric(Recovered[,i])
-    hosp <- as.integer(hospital[,i])
-    hosp = c(rep(NA, length(test)-length(hosp)),hosp)
+    # test <- Tested[,i]
+    pos <- as.integer(Positive[,i])
+    temp = length(pos)
+    postest <- as.integer(Positive.Tests[,i])
+    postest = c(rep(NA, length(pos)-length(postest)),postest)
+    rec <- as.numeric(lag(Positive[,i],n=4)-Deaths[,i])
+    # hosp <- as.integer(hospital[,i])
+    # hosp = c(rep(NA, length(test)-length(hosp)),hosp)
     death <- as.numeric(Deaths[,i])
     temp <- data.frame(
         date = dates,
-        Tested = test,
+        TestedPos = postest,
         Positive = pos,
         Recovered = rec,
-        Hospitalized = hosp,
+        # Hospitalized = hosp,
         Deaths = death)
     
-    temp <- temp %>% 
+    temp <- temp %>%
         mutate(
             Active = Positive - Recovered - Deaths,
             New.Pos = Positive - lag(Positive),
-            New.Test = Tested - lag(Tested),
+    #         New.Test = Tested - lag(Tested),
             New.Rec = Recovered - lag(Recovered),
             New.Deaths = Deaths - lag(Deaths),
-            Frac.Pos = New.Pos/New.Test,
-            Day7.Test = Tested - lag(Tested, n=7),
-            Day7.Pos = Positive - lag(Positive, n=7),
-            Day7.Rec = Recovered - lag(Recovered, n=7),
-            Day7.Death = Deaths - lag(Deaths, n=7),
-            Day7.Active = Active - lag(Active, n=7),
-            Day7.Perc = Day7.Pos/Day7.Test,
-            Day14.Test = Tested - lag(Tested, n=14),
-            Day14.Pos = Positive - lag(Positive, n=14),
-            Day14.Rec = Recovered - lag(Recovered, n=14),
-            Day14.Death = Deaths - lag(Deaths, n=14),
-            Day14.Active = Active - lag(Active, n=14),
-            Day14.Perc = Day14.Pos/Day14.Test,
-            Not.Sick = (lag(Positive, n= 10) -
-                            lag(Positive, n=28))*0.7,
-            True.Active = Positive - Recovered -
-                Deaths - round(Not.Sick, digits = 0)
+            True.Active = Positive - lag(Positive, n=2) -
+                Deaths
         )
     
     assign(paste(i,"Data", sep=""), temp)
@@ -295,11 +163,12 @@ for(i in 2:(length(county_names))){
     # "Data.csv", sep=""))
 }
 
-write.csv(Tested, "CountyData/CountyTests.csv")
+# write.csv(Tested, "CountyData/CountyTests.csv")
 write.csv(Positive, "CountyData/CountyPositive.csv")
-write.csv(Recovered, "CountyData/CountyRecovered.csv")
+write.csv(Positive.Tests, "CountyData/CountyPositiveTests.csv")
+# write.csv(Recovered, "CountyData/CountyRecovered.csv")
 write.csv(Deaths, "CountyData/CountyDeaths.csv")
-write.csv(Active, "CountyData/CountyActive.csv")
+# write.csv(Active, "CountyData/CountyActive.csv")
 
 ```
 ```{r filldata, results='hide'}
@@ -323,53 +192,65 @@ i=as.Date(date)
 # i = as.Date("2021-11-22")
 covid19[covid19$date == i,
         c("Bremer.Positive", 
-          "Bremer.Recovered", "Bremer.Death")]=
+          "Bremer.Recovered",
+           "Bremer.Death")]=
     BremerData[BremerData$date==i, 
-               c( "Positive", "Recovered", 
+               c( "Positive",  "Recovered",
                  "Deaths")]
 
 covid19[covid19$date == i,
-        c("Butler.P", 
-          "Butler.R", "Butler.D")]=
+        c("Butler.P", "Butler.R",
+           "Butler.D")]=
     ButlerData[ButlerData$date==i, 
-               c("Positive", "Recovered", 
+                c( "Positive",  "Recovered",
                  "Deaths")]
 covid19[covid19$date == i,
-        c("BlackHawk.P", 
-          "BlackHawk.R", "BlackHawk.D")]=
+        c("BlackHawk.P", "BlackHawk.R" ,
+           "BlackHawk.D")]=
     Black.HawkData[Black.HawkData$date==i, 
-               c("Positive", "Recovered", 
+                c( "Positive",  "Recovered",
                  "Deaths")]
 
 
-    covid19[covid19$date == as.Date(date),"Total.Tested"] = 
-        Tested[anydate(Tested$date) == date,"Totals"]
-    
+    # covid19[covid19$date == as.Date(date),"Total.Tested"] = 
+    #     Tested[anydate(Tested$date) == date,"Totals"]
+    # 
     covid19[covid19$date == as.Date(date),"positive"] = 
         Positive[anydate(Positive$date) == date,"Totals"]
-    covid19[covid19$date == as.Date(date),"Recovered"] = 
-        Recovered[anydate(Recovered$date) == date,"Totals"]
+    # covid19[covid19$date == as.Date(date),"Recovered"] = 
+    #     Recovered[anydate(Recovered$date) == date,"Totals"]
     covid19[covid19$date == as.Date(date),"deaths"] = Deaths[anydate(Deaths$date) == date,"Totals"]
-    covid19[covid19$date == as.Date(date),"hospitalized"] = 
-        statedata[anydate(statedata$date)==date, "Hospitalized"]
-    covid19[covid19$date == as.Date(date),"ICU"] = 
-        statedata[anydate(statedata$date)==date, "COVID.19.Patients.in.ICU"]
-    covid19[covid19$date == as.Date(date),"Admit"] = statedata[anydate(statedata$date)==date, "COVID.19.Patients.Admitted.in.last.24.hrs"]
+ covid19[covid19$date == as.Date(date),"Recovered"] =
+     subset(clean, date == (day-28))$positive - subset(clean, date == (day-28))$deaths
 
 covid19[-1] = sapply(covid19[,-1], as.numeric)
 covid19 = covid19 %>%
-  mutate(Bremer.SS = Bremer.Positive-Bremer.Death - Bremer.Recovered,
-         Butler.SS = Butler.P - Butler.R,
-         BlackHawk.SS = BlackHawk.P- BlackHawk.D - BlackHawk.R)
+mutate(Bremer.SS = Bremer.Positive-Bremer.Death - Bremer.Recovered,
+Butler.SS = Butler.P - Butler.R,
+BlackHawk.SS = BlackHawk.P- BlackHawk.D - BlackHawk.R)
 
 write.csv(covid19, "covid19.csv",row.names = FALSE)
+
+source("FillData2.R")
 
 ```
 
 ```{r}
-qplot(date, New.Positive.Tests, data = tail(covid19, n=40))+geom_smooth(span = 0.3, se = TRUE) 
+# qplot(date, New.Positive.Tests, data = tail(covid19, n=40))+geom_smooth(span = 0.3, se = TRUE) 
 
-qplot(date, hospitalized, data = tail(covid19, n=80))+geom_smooth(span = 0.3, se = TRUE) 
+qplot(date, hospitalized, data = tail(covid19_1, n=80))+geom_smooth(span = 0.3, se = TRUE) 
+
+##############################################
+mergedYearonYearHospMeans = covid19 %>%
+    drop_na(hospitalized) %>%
+    select("date","hospitalized") %>%
+    mutate(week = week(date),
+           year = year(date)) %>%
+    group_by(year, week) %>%
+    summarise_at(vars(hospitalized), list(WeeklyAve = mean))
+
+qplot(week, WeeklyAve, data=mergedYearonYearHospMeans, color = factor(year)) + xlab("Week of Year") + ylab("Weekly Average Hospitalized")+geom_smooth(span = 0.3, se = TRUE)
+
 ```
 
 
@@ -379,32 +260,40 @@ qplot(date, hospitalized, data = tail(covid19, n=80))+geom_smooth(span = 0.3, se
 ##  Create Clean Dataset
 #######################################
 
-clearn <- !is.na(covid19$Recovered)
+clearn <- !is.na(covid19$positive)
 clean <- covid19[clearn,] 
 clean$date = as.Date(clean$date)
 cdeaths <- covid19[!is.na(covid19$deaths),]
+clean[500:nrow(clean),"New.Positive"] = weeklag("positive", clean)[500:nrow(clean)]
+clean[500:nrow(clean),"New.Deaths"] = weeklag("deaths", clean)[500:nrow(clean)]
+# clean <- clean %>% mutate(
+#   negative = Total.Tested - positive,
+#   New.Positive = positive - lag(positive),
+#   New.Negative = negative - lag(negative),
+#   new.hospital = hospitalized - lag(hospitalized),
+#   Total.Daily.Tests = Total.Tested - lag(Total.Tested),
+#   New.Deaths = deaths - lag(deaths),
+#   Still.Sick = positive - Recovered - deaths,
+#   time.change = date - lag(date)
+# )
 clean <- clean %>% mutate(
-  negative = Total.Tested - positive,
-  New.Positive = positive - lag(positive),
-  New.Negative = negative - lag(negative),
-  new.hospital = hospitalized - lag(hospitalized),
-  Total.Daily.Tests = Total.Tested - lag(Total.Tested),
-  New.Deaths = deaths - lag(deaths),
-  Still.Sick = positive - Recovered)
-clean <- clean %>% mutate(
-  negative = Total.Tested - positive,
-  Percent.Pos = positive/Total.Tested*100,
+  # negative = Total.Tested - positive,
+  # Percent.Pos = positive/Total.Tested*100,
   #np_7day = rollmean(New.Positive, k=7, align = "right", fill = NA),
   # np_7day = (positive - lag(positive, n=7))/7,
-  New.Percent.Positive = New.Positive/Total.Daily.Tests,
-  Percent.Hospitalized = hospitalized/Still.Sick*100
+  # New.Percent.Positive = New.Positive/Total.Daily.Tests,
+  Percent.Hospitalized = hospitalized/Still.Sick*100,
+  np_day = New.Positive/as.integer(time.change)
 )
 clean <- clean %>% mutate(
-  New.Total.Tests = Total.Tests - lag(Total.Tests,n=1),
+  # New.Total.Tests = Total.Tests - lag(Total.Tests,n=1),
   New.Positive.Tests = Positive.Tests - lag(Positive.Tests, n=1),
-  New.Bremer.Total.Tests = Bremer.Total.Tests - lag(Bremer.Total.Tests,n=1),
+  # New.Bremer.Total.Tests = Bremer.Total.Tests - lag(Bremer.Total.Tests,n=1),
   New.Bremer.Positive.Tests = Bremer.Positive.Tests - lag(Bremer.Positive.Tests, n=1),
   )
+clean[500:nrow(clean),"New.Positive.Tests"] = weeklag("Positive.Tests", clean)[500:nrow(clean)]
+clean[500:nrow(clean),"New.Bremer.Positive.Tests"] = weeklag("Bremer.Positive.Tests", clean)[500:nrow(clean)]
+
 ```
 
 ```{r, echo = FALSE}
@@ -412,7 +301,7 @@ today <- clean[nrow(clean),]
 day <- today$date
 temp = tail(statedata[,"Individuals.Tested"],n=2)
 new_pos <- today$New.Positive
-percent_pos <- round(today$New.Positive/today$New.Positive.Tests*100, digits = 1)
+# percent_pos <- round(today$New.Positive/today$New.Positive.Tests*100, digits = 1)
 
 percent_pos7 <- round(clean$Week.Positivity.Rate[nrow(clean)-4]*100, digits = 1)
 
@@ -433,52 +322,53 @@ clean = clean %>% mutate(
 write.csv(clean, "clean.csv")
 
 # Adding more data to Bremer
-hosp <- as.integer(hospital[,"Bremer"])
-temp <- clean %>% select("date","Bremer.Positive", 
-                         "Bremer.Recovered", "Bremer.Death")
-names(temp) = c("date","Positive", "Recovered", "Deaths")
-temp <- subset(temp, 
-               !is.na(Positive) & date < "2020-07-31")%>% 
-  mutate(Tested = NA, Hospitalized = NA)
-temp2 <- BremerData %>% select("date","Hospitalized", "Tested","Positive", "Recovered", "Deaths")
-temp = rbind(temp, temp2)
-rm(temp2)
-temp$Tested = as.integer(temp$Tested)
-temp <- temp  %>% 
-  mutate(
-    Active = Positive - Recovered - Deaths,
-    New.Pos = Positive - lag(Positive),
-    New.Test = Tested - lag(Tested),
-    New.Rec = Recovered - lag(Recovered),
-    New.Deaths = Deaths - lag(Deaths),
-    Frac.Pos = New.Pos/New.Test,
-    # Day7.Test = Tested - lag(Tested, n=7),
-    # Day7.Pos = Positive - lag(Positive, n=7),
-    # Day7.Rec = Recovered - lag(Recovered, n=7),
-    # Day7.Death = Deaths - lag(Deaths, n=7),
-    # Day7.Active = Active - lag(Active, n=7),
-    # Day7.Perc = Day7.Pos/Day7.Test,
-    # Day14.Test = Tested - lag(Tested, n=14),
-    # Day14.Pos = Positive - lag(Positive, n=14),
-    # Day14.Rec = Recovered - lag(Recovered, n=14),
-    # Day14.Death = Deaths - lag(Deaths, n=14),
-    # Day14.Active = Active - lag(Active, n=14),
-    # Day14.Perc = Day14.Pos/Day14.Test,
-            # Not.Sick = (lag(Positive, n= 10) -
-            #               lag(Positive, n=28))*0.7,
-            # True.Active = Positive - Recovered -
-            #   Deaths - round(Not.Sick, digits = 0)
-  )
-
-BremerData = temp
-rm(temp)
+# hosp <- as.integer(hospital[,"Bremer"])
+# temp <- clean %>% select("date","Bremer.Positive", 
+#                          "Bremer.Recovered", "Bremer.Death")
+# names(temp) = c("date","Positive", "Recovered", "Deaths")
+# temp <- subset(temp, 
+#                !is.na(Positive) & date < "2020-07-31")%>% 
+#   mutate(Tested = NA, Hospitalized = NA)
+# temp2 <- BremerData %>% select("date","Hospitalized", "Tested","Positive", "Recovered", "Deaths")
+# temp = rbind(temp, temp2)
+# rm(temp2)
+# temp$Tested = as.integer(temp$Tested)
+# temp <- temp  %>% 
+#   mutate(
+#     Active = Positive - Recovered - Deaths,
+#     New.Pos = Positive - lag(Positive),
+#     New.Test = Tested - lag(Tested),
+#     New.Rec = Recovered - lag(Recovered),
+#     New.Deaths = Deaths - lag(Deaths),
+#     Frac.Pos = New.Pos/New.Test,
+#     # Day7.Test = Tested - lag(Tested, n=7),
+#     # Day7.Pos = Positive - lag(Positive, n=7),
+#     # Day7.Rec = Recovered - lag(Recovered, n=7),
+#     # Day7.Death = Deaths - lag(Deaths, n=7),
+#     # Day7.Active = Active - lag(Active, n=7),
+#     # Day7.Perc = Day7.Pos/Day7.Test,
+#     # Day14.Test = Tested - lag(Tested, n=14),
+#     # Day14.Pos = Positive - lag(Positive, n=14),
+#     # Day14.Rec = Recovered - lag(Recovered, n=14),
+#     # Day14.Death = Deaths - lag(Deaths, n=14),
+#     # Day14.Active = Active - lag(Active, n=14),
+#     # Day14.Perc = Day14.Pos/Day14.Test,
+#             # Not.Sick = (lag(Positive, n= 10) -
+#             #               lag(Positive, n=28))*0.7,
+#             # True.Active = Positive - Recovered -
+#             #   Deaths - round(Not.Sick, digits = 0)
+#   )
+# 
+# BremerData = temp
+# rm(temp)
 write.csv(BremerData, "CountyData/BremerData.csv")
 
 maxtoday = data.frame(colMax(clean[,-1]) == today[,-1])
 temp = subset(clean, date == (as.Date(day)-365))
 oldactive = temp$positive-temp$Recovered-temp$deaths
 rm(temp)
-week.new.pos = round(new_pos/7, digits = 1)
+# week.new.pos = round(new_pos/7, digits = 1)
+Active = clean$positive-lag(clean$positive, n=5)-clean$deaths
 ```
 
 ```{r}
@@ -531,22 +421,23 @@ write.csv(CompleteVaccination, "CountyData/Vaccine.csv", row.names = F)
 
 # Iowa COVID-19 Summary `r day`
 
-Today we had `r format(new_pos, scientific = FALSE, big.mark=",")` new positive patients (average of `r week.new.pos` new cases per day) which is `r percent_pos`% of the newly tested people and `r test.positivity`% of all tests recorded in the last week.
-`r clean$New.Deaths[nrow(clean)]` deaths in the last week. One in `r round(IowaPop/clean[nrow(clean),]$deaths, digits = 0)` people in Iowa has died of COVID-19. There are `r sick` people actively sick and `r  percent_hospital`% (`r today$hospitalized`) are hospitalized, `r percent_ICU`% (`r ICU`) of those hospitalized are in the ICU.
+This week we had `r format(new_pos, scientific = FALSE, big.mark=",")` new positive patients (average of `r round(tail(clean$np_day, n=1), digits=1)` or `r round(tail(clean$np_day, n=1)/IowaPop*100000, digits=1)` per 100,000 new positive patients per day). The state is not reporting the number of recovered cases, but it is estimated that we have `r format(tail(Active,n=1), scientific = FALSE, big.mark = ",")` actively sick Iowans.  We no longer know the total number of tests each week.
 
-One year ago, we had `r format(oldactive, scientific = FALSE, big.mark=",")` actively sick and `r subset(clean, date == (day-365))$New.Positive` new positive patients per day in Iowa.
+`r clean$New.Deaths[nrow(clean)]` deaths in the last week. One in `r round(IowaPop/clean[nrow(clean),]$deaths, digits = 0)` people in Iowa has died of COVID-19. There are `r covid19$hospitalized[nrow(covid19)]` (`r round(tail(clean$hospitalized, n=1)/tail(Active,n=1)*100,1)`% of active) Iowans hospitalized for COVID-19. Of those, `r clean$ICU[nrow(clean)]` (`r tail( round(clean$ICU/clean$hospitalized*100,1) , n=1)`% of hospitalized) are in the ICU.
+
+One year ago, we had `r format(subset(clean, date == (day-365))$Still.Sick, scientific = FALSE, big.mark=",")` actively sick and `r subset(clean, date == (day-365))$New.Positive` new positive patients per day in Iowa. Two years ago, we had `r format(subset(clean, date == (day-730))$Still.Sick, scientific = FALSE, big.mark=",")` actively sick and `r subset(clean, date == (day-730))$New.Positive` new positive patients per day in Iowa.
 
 ```{r}
 #`r if(today$New.Deaths >=1) {"The newly recorded deaths occurred on "}` `r if(today$New.Deaths >=1) {NDeaths[NDeaths$change != 0,"NewD"]}`
 
-no = 31
+no = " (1)"
 OldDeaths <- read.csv(paste0("Total Deaths",no,".csv"))
 # OldDeaths <- read.csv(paste0("Total Deaths",day(mydate-1),".csv"))
 OldDeaths[,1] = as.Date(OldDeaths[,1])
 
 # weekOldDeaths <- read.csv(paste0("Total Deaths",day(mydate-7),".csv"))
 # weekOldDeaths[,1] = as.Date(OldDeaths[,1])
-n = "01"
+n = ""
 NewDeaths <- read.csv(paste0("Total Deaths",n,".csv"))
 # NewDeaths <- read.csv(paste0("Total Deaths",day(mydate),".csv"))
 NewDeaths[,1] = as.Date(NewDeaths[,1])
@@ -554,8 +445,8 @@ NewDeaths[,1] = as.Date(NewDeaths[,1])
 
 NDeaths = as.data.frame(merge(NewDeaths, OldDeaths, by ="EventDateOfDeath", all=T))
 NDeaths[is.na(NDeaths)] <- 0
-NDeaths = NDeaths %>% mutate(change = Total.Deaths...Daily.Total.x
- -Total.Deaths...Daily.Total.y,
+NDeaths = NDeaths %>% mutate(change = Total.Deaths.x
+ -Total.Deaths.y,
  NewD = paste0(EventDateOfDeath," (",change,")")) 
 NDeaths[NDeaths$change != 0,"NewD"]
 
@@ -649,4 +540,148 @@ ggtitle("Known Active COVID-19 Cases in Butler County Per 100,000 People")
 
  day7pos.Bremer <- round(
    BremerData[nrow(BremerData), ncol(BremerData)]*100, digits=1)
+```
+
+
+```{r hospitalization, echo=FALSE}
+# mydate <- Sys.Date()
+# hosp_by_county <- pdf_text("hosp_by_county.pdf") %>%
+#     readr::read_lines() %>% str_squish()
+# # hosp_by_county <-    str_squish(hosp_by_county)
+# temp <- hosp_by_county
+# hosp_by_county <- temp[5:37]
+# temp1 = strsplit(temp[41]," ") %>% ldply()
+# date = as.character(mdy(temp1[3]))
+# 
+# hosp_by_county <-hosp_by_county %>%
+#     strsplit("(?= [A-Za-z])(?<=[0-9])|(?= [0-9])(?<=[A-Za-z])", perl=TRUE)
+# 
+# hosp_by_county_df <- plyr::ldply(hosp_by_county)
+# temp1 <- hosp_by_county_df[,1:2]
+# temp2 <- hosp_by_county_df[,3:4]
+# temp3 <- hosp_by_county_df[,5:6]
+# colnames(temp2) <- names(temp1)
+# colnames(temp3) <- names(temp1)
+# hosp_by_county <- rbind(temp1, temp2, temp3)
+# colnames(hosp_by_county) <- c("County", "Hospitalized")
+# hosp_by_county <-hosp_by_county %>%
+#     mutate(Hospitalized = as.numeric(Hospitalized))
+# temp1 = sum(hosp_by_county[,2])
+# hosp_by_county <- rbind(hosp_by_county, c("Totals", temp1))
+# rm(temp1, temp2, temp3, hosp_by_county_df)
+# 
+# rownames(hosp_by_county) <- hosp_by_county[,1]
+# 
+# hospital <- as.data.frame(read.csv("CountyHospitilizations.csv"))
+# hospital <- hospital[,-1]
+# #hospital[,1] = mdy(hospital[,1])
+# h_county <-  t(hosp_by_county[,2])
+# 
+# colnames(h_county) <-  hosp_by_county[,1]
+# h_county <- cbind(date = c(date, h_county))
+# rownames(h_county) <- colnames(hospital)
+# h_county <- t(h_county)
+# # if(mydate1== date){
+#     hospital <- rbind(hospital, h_county)
+# # } else {
+# #   temp <-hospital[,1]== date
+# #   temp1 <- (1:600)[temp][1]
+# #   hospital[temp1,] <- h_county
+# #   if(as.character(hospital[nrow(hospital),1]) != mydate1){
+#   # hospital <- rbind.fill(hospital, data.frame(Date = date))
+# #   }
+# # }
+# hospital <- unique(hospital)
+# 
+# write.csv(hospital, "CountyHospitilizations.csv")
+# hospital <- hospital[!is.na(hospital$Adair),]
+```
+
+```{r accessdata}
+# ## Change Date on pdf file
+# Summary <- pdf_text(
+#     "access _ Iowa COVID-19 Information08.pdf") %>%
+#     readr::read_lines() %>% str_squish()
+# Summary = Summary[!Summary == ""]
+# temp1 = Summary[6] %>% ldply() 
+# date = as.character(mdy(temp1[1]))
+# # Summary[79] = paste(Summary[79], Summary[80])
+# Summary <- str_remove_all(Summary, " Translate") %>% 
+#     str_remove_all("Translate")
+# # Summary[79] = paste(Summary[79], Summary[80])
+# CountyDataOld <- Summary[46:150]
+# CountyDataOld <- CountyDataOld %>% 
+# strsplit("(?= [A-Za-z])(?<=[0-9])|(?= [0-9])(?<=[A-Za-z])", perl=TRUE)
+# 
+# 
+# # CountyDataOld <- Summary[46:151] %>%
+# #     strsplit("(?= [A-Za-z])(?<=[0-9])|(?= [0-9])(?<=[A-Za-z])", perl=TRUE)
+# # CountyDataOld <- CountyDataOld[-c(10:11,71:72)]
+# # temp1 = CountyDataOld[44:45]
+# # temp2 = plyr::ldply(temp1[1])
+# # temp2[,2]=paste0(temp2[,2],plyr::ldply(temp1[2]) )
+# # CountyDataOld <- CountyDataOld[-c(35:37,89,91:92)]
+# CountyDataOld <- CountyDataOld[-c(35:36,88, 90:91)]
+# CountyDataOld1 <- plyr::ldply(CountyDataOld[-100])
+# CountyDataOld1[100,] = CountyDataOld[[100]]
+# # ]CountyDataOld = rbind(CountyDataOld,temp2)
+# temp <- strsplit(CountyDataOld1[,2], " ", fixed = TRUE)
+# temp <- plyr::ldply(temp)
+# temp[,1] = CountyDataOld1[,1]
+# colnames(temp) = c("County", "Individuals.Tested","Individuals.Positive", 
+#                    "Total.Recovered", "Total.Deaths")
+# CountyDataOld <- temp
+# CountyDataOld[-1] = sapply(CountyDataOld[-1], as.integer)
+# CountyDataOld <- as.data.frame(CountyDataOld) %>%
+#     arrange(County)%>%
+#     mutate(Active = Individuals.Positive - Total.Recovered - Total.Deaths,
+#            positivity = Individuals.Positive/Individuals.Tested,
+#            date = as.Date(date),
+#     )
+# 
+# temp <-c(County = "Totals",
+#          colSums(CountyDataOld[,2:6]),
+#          positivity = NA,
+#          date = as.character(date))
+# temp["positivity"] = as.integer(temp["Individuals.Positive"])/as.integer(temp["Individuals.Tested"])
+# CountyDataOld[101,] = temp
+# CountyDataOld[,2:6] = sapply(CountyDataOld[,2:6], as.integer)
+# CountyDataOld[,7] = sapply(CountyDataOld[,7], as.numeric)
+# # CountyDataOld = CountyDataOld[-100,]
+# write.csv(CountyDataOld, file = paste(
+#     'CountyData/',date,'CountyData.csv'))
+# 
+# #More interesting information
+# # tempnames =Summary[seq(7,21, 2)]
+# # tempnames1 = Summary[seq(26,40,2)]
+# # tempnames = c(tempnames, tempnames1)
+# # tempdata =Summary[seq(8,20, 2)]
+# # tempdata1 =Summary[seq(25,41, 2)]
+# tempnames =Summary[seq(7,17, 2)]
+# tempnames1 = Summary[seq(22,36,2)]
+# # tempnames2 = Summary[seq(40,42,2)]
+# tempnames2 = Summary[seq(41,43,2)]
+# tempnames = c(tempnames, tempnames1, tempnames2)
+# tempdata =Summary[seq(8,16, 2)]
+# 
+# tempdata1 =Summary[seq(21,35, 2)]
+# tempdata2 =Summary[seq(40,44, 2)]
+# tempdata = c(tempdata, tempdata1, tempdata2)
+# tempdata = plyr::ldply(as.integer(
+#   gsub(",","",tempdata)))
+# tempdata = t(tempdata)
+# colnames(tempdata) <- tempnames
+# tempdata = cbind("date"=date, tempdata)
+# statedata <- read.csv(paste(
+#   'CountyData/StateData.csv'),
+#                    stringsAsFactors = FALSE)
+# # statedata = rbind(statedata, tempdata)
+# if (statedata$date[nrow(statedata)] != tempdata[1]){
+# statedata[nrow(statedata)+1,]=tempdata
+# }
+# statedata[,-1] = sapply(statedata[,-1], as.integer)
+# statedata = unique(statedata)
+# write.csv(statedata, file = paste(
+#     'CountyData/StateData.csv'), 
+#     row.names = FALSE)
 ```
