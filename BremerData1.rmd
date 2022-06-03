@@ -50,8 +50,6 @@ Risk = Risk %>% mutate(
   Johnson.Risk = 1-(1-Johnson.Prob*5)^groupsize,
   Linn.Risk = 1-(1-Linn.Prob*5)^groupsize
   )
-
-
 ```
 `r day`: `r as.integer(Bremerlastrow$Active)` active cases `r if(Brtemp$Active) {" (record)"}` in Bremer County, IA today. If the current infection trends continue, in 4 weeks we will have `r as.integer(Bremerlastrow["New.Pos"]*4)` active cases.
 
@@ -59,7 +57,7 @@ In the last 7 days: `r New.Positive.Tests[nrow(New.Positive.Tests),"Bremer"]` ne
 
 If you are in a group of `r groupsize` random people in Bremer County there is a `r round(Risk$Bremer.Risk*100, digits = 2)[1,]`% chance someone in the group is positive. One in `r round(Bremer_Population/Bremerlastrow$Deaths, digits = 0)[1,]` people in Bremer County has died of COVID-19.
 
- One year ago, we had `r subset(BremerData, date == (day-365))$Active` active cases and  `r subset(BremerData, date == (day-365))$New.Pos` new positive patients in Bremer County.
+ One year ago, we had `r subset(BremerData, date == (day-365))$Active` active cases and  `r subset(BremerData, date == (day-365))$New.Pos` new positive patients in Bremer County. 
  
 ***
  `r as.integer(Butlerlastrow["Active"])` active cases`r if(Butemp$Active) {" (record)"}` in Butler County, IA today. If the current infection trends continue, in 4 weeks we will have `r as.integer(Butlerlastrow["New.Pos"]*4)` active cases. 
@@ -81,6 +79,7 @@ One year ago, we had `r subset(Black.HawkData, date == (day-365))$Active` active
 ```{r, echo = False}
 require(reshape2)
 mydate <- Sys.Date()
+graphlength = 90
 
 Bremer_Population <- county[county$COUNTY=="Bremer",][,3]
 Butler_Population <- county[county$STATE=="Iowa"&county$COUNTY=="Butler",][,3]
@@ -94,12 +93,14 @@ temp = covid19[,c("date","Bremer.SS", "Butler.SS", "BlackHawk.SS")]
 temp = temp %>% mutate(Bremer = Bremer.SS/Bremer_Population$Population*100000,
                        Butler = Butler.SS/Butler_Population$Population* 100000,
                        BlackHawk = BlackHawk.SS/BlackHawk_Population$Population * 100000)
-temp = tail(temp, n=90)
+# temp = tail(temp, n=graphlength)
+temp = temp[temp$date >= (mydate-graphlength),]
 mtemp = melt(temp, id.vars = "date", 
              measure.vars = c('Bremer', 'Butler', 'BlackHawk'))
 printplot <- qplot(as.Date(date), value, color = variable, data = mtemp, geom = "point") +
   geom_smooth(span = 0.3, se = TRUE) +
     ylab("Cases per 100,000") +
+    xlab("Date")+
     labs(color = "County", title = paste("Active Cases Per 100,000", mydate))
   # +geom_hline(yintercept = year_reference, 
   #            color = "red") + 
@@ -112,9 +113,9 @@ print(printplot)
 ggsave(paste(day,"BBBCounties.png"), plot = printplot)
 # ggsave("BBBCounties.png")
 # 
-png(paste(day,"BBBCounties.png"))
-print(printplot)
-dev.off()
+# png(paste(day,"BBBCounties.png"))
+# print(printplot)
+# dev.off()
 ```
 
 

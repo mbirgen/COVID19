@@ -1,12 +1,12 @@
 temp = read.csv("Summary.csv")
 
 TestsNew = as.data.frame(temp) %>%
-    arrange(County)%>%
-    mutate(
-        # Active = Total.Positive.Tests 
-        #    - Total.Recovered
-        #    - Total.Deaths,
-           Date = as.Date(date))
+    arrange(County)
+    # mutate(
+    #     # Active = Total.Positive.Tests 
+    #     #    - Total.Recovered
+    #     #    - Total.Deaths,
+    #        Date = as.Date(date))
 
 TestsOld = read.csv("TestsOld.csv")
 TestsOld = TestsOld %>%
@@ -63,3 +63,15 @@ write.csv(New.Deaths, "NewDeaths.csv",row.names = FALSE)
 
 TestsOld = TestsNew
 write.csv(TestsOld,"TestsOld.csv", row.names = FALSE)
+
+###########################
+weeklag <- function(topic, df){
+    returnme = c()
+    for(i in 500:nrow(df)){
+        x=df[,topic][500:i]
+        returnme[i] = max(x, na.rm = TRUE)-
+            max(x[x != max(x, na.rm = TRUE)], 
+                na.rm = TRUE) 
+    }
+    return(returnme)
+}

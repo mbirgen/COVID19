@@ -31,7 +31,7 @@ county = subset(county, STATE == "Iowa")
 
 
 ```{r storedata1, echo=FALSE}
-date = "2022-04-20"
+date = Sys.Date()
 source("LoadSummary.R")
 
 ##Add data to big csv files
@@ -79,7 +79,7 @@ templist = c(
 # Tested <- Tested[-nrow(Tested),]
 # Positive <- Positive[-nrow(Positive),]
 # Recovered <- Recovered[-nrow(Recovered),]
-# Active <- Active[-nrow(Active),]
+#   #Active <- Active[-nrow(Active),]
 # Deaths <- Deaths[-nrow(Deaths),]
 
 
@@ -135,7 +135,7 @@ for(i in 2:(length(county_names))){
     temp = length(pos)
     postest <- as.integer(Positive.Tests[,i])
     postest = c(rep(NA, length(pos)-length(postest)),postest)
-    rec <- as.numeric(lag(Positive[,i],n=4)-Deaths[,i])
+    rec <- as.numeric(monthvalue(i,Positive)-monthvalue(i,Deaths))
     # hosp <- as.integer(hospital[,i])
     # hosp = c(rep(NA, length(test)-length(hosp)),hosp)
     death <- as.numeric(Deaths[,i])
@@ -147,22 +147,26 @@ for(i in 2:(length(county_names))){
         # Hospitalized = hosp,
         Deaths = death)
     
-    temp <- temp %>%
-        mutate(
-            Active = Positive - Recovered - Deaths,
-            New.Pos = Positive - lag(Positive),
-    #         New.Test = Tested - lag(Tested),
-            New.Rec = Recovered - lag(Recovered),
-            New.Deaths = Deaths - lag(Deaths),
-            True.Active = Positive - lag(Positive, n=2) -
-                Deaths
-        )
+    # temp <- temp %>%
+    #     mutate(
+    #         Active = Positive - Recovered - Deaths,
+    #         New.Pos = Positive - lag(Positive),
+    # #         New.Test = Tested - lag(Tested),
+    #         New.Rec = Recovered - lag(Recovered),
+    #         New.Deaths = Deaths - lag(Deaths),
+    #         # True.Active = Positive - lag(Positive, n=2) -
+    #             Deaths
+    #     )
     
     assign(paste(i,"Data", sep=""), temp)
+
+}
+```
+
+
+```{r storedata2, echo=FALSE}
     # write.csv(temp, paste("CountyData/",county_names[i],
     # "Data.csv", sep=""))
-}
-
 # write.csv(Tested, "CountyData/CountyTests.csv")
 write.csv(Positive, "CountyData/CountyPositive.csv")
 write.csv(Positive.Tests, "CountyData/CountyPositiveTests.csv")
@@ -171,6 +175,7 @@ write.csv(Deaths, "CountyData/CountyDeaths.csv")
 # write.csv(Active, "CountyData/CountyActive.csv")
 
 ```
+
 ```{r filldata, results='hide'}
 #####################################
 #### Fill in covid19
@@ -219,9 +224,9 @@ covid19[covid19$date == i,
         Positive[anydate(Positive$date) == date,"Totals"]
     # covid19[covid19$date == as.Date(date),"Recovered"] = 
     #     Recovered[anydate(Recovered$date) == date,"Totals"]
-    covid19[covid19$date == as.Date(date),"deaths"] = Deaths[anydate(Deaths$date) == date,"Totals"]
- covid19[covid19$date == as.Date(date),"Recovered"] =
-     subset(clean, date == (day-28))$positive - subset(clean, date == (day-28))$deaths
+    covid19[covid19$date == as.Date(date),"deaths"] = Deaths[anydate(Deaths$date) == as.Date(date),"Totals"]
+ covid19[,"Recovered"] =
+     monthvalue("positive", covid19) - monthvalue("deaths", covid19)
 
 covid19[-1] = sapply(covid19[,-1], as.numeric)
 covid19 = covid19 %>%
@@ -238,7 +243,7 @@ source("FillData2.R")
 ```{r}
 # qplot(date, New.Positive.Tests, data = tail(covid19, n=40))+geom_smooth(span = 0.3, se = TRUE) 
 
-qplot(date, hospitalized, data = tail(covid19_1, n=80))+geom_smooth(span = 0.3, se = TRUE) 
+qplot(date, hospitalized, data = tail(covid19, n=80))+geom_smooth(span = 0.3, se = TRUE) 
 
 ##############################################
 mergedYearonYearHospMeans = covid19 %>%
@@ -282,15 +287,16 @@ clean <- clean %>% mutate(
   #np_7day = rollmean(New.Positive, k=7, align = "right", fill = NA),
   # np_7day = (positive - lag(positive, n=7))/7,
   # New.Percent.Positive = New.Positive/Total.Daily.Tests,
+    time.change = date - lag(date),
   Percent.Hospitalized = hospitalized/Still.Sick*100,
   np_day = New.Positive/as.integer(time.change)
 )
-clean <- clean %>% mutate(
+# clean <- clean %>% mutate(
   # New.Total.Tests = Total.Tests - lag(Total.Tests,n=1),
-  New.Positive.Tests = Positive.Tests - lag(Positive.Tests, n=1),
+  # New.Positive.Tests = Positive.Tests - lag(Positive.Tests, n=1),
   # New.Bremer.Total.Tests = Bremer.Total.Tests - lag(Bremer.Total.Tests,n=1),
-  New.Bremer.Positive.Tests = Bremer.Positive.Tests - lag(Bremer.Positive.Tests, n=1),
-  )
+  # New.Bremer.Positive.Tests = Bremer.Positive.Tests - lag(Bremer.Positive.Tests, n=1),
+  # )
 clean[500:nrow(clean),"New.Positive.Tests"] = weeklag("Positive.Tests", clean)[500:nrow(clean)]
 clean[500:nrow(clean),"New.Bremer.Positive.Tests"] = weeklag("Bremer.Positive.Tests", clean)[500:nrow(clean)]
 
@@ -312,12 +318,12 @@ percent_ICU <- round(today$ICU/today$hospitalized*100, digits = 1)
 sick <- format(today$Still.Sick, scientific = FALSE, big.mark=",")
 IowaPop <- 3155070
 
-test.positivity = round(sum(New.Positive.Tests["Total.Positive.Tests",-1])/sum(New.Tests["Total.Tests",-1])*100,digits = 1)
+# test.positivity = round(sum(New.Positive.Tests["Total.Positive.Tests",-1])/sum(New.Tests["Total.Tests",-1])*100,digits = 1)
 
-clean = clean %>% mutate(
-  Individuals.Reported = Individuals.Tested - lag(Individuals.Tested),
-  Individuals.Positive = Individuals.Postive - lag(Individuals.Postive),
-  Bremer.Rep = Bremer.Individuals.Tested - lag(Bremer.Individuals.Postive))
+# clean = clean %>% mutate(
+#   Individuals.Reported = Individuals.Tested - lag(Individuals.Tested),
+#   Individuals.Positive = Individuals.Postive - lag(Individuals.Postive),
+#   Bremer.Rep = Bremer.Individuals.Tested - lag(Bremer.Individuals.Postive))
 
 write.csv(clean, "clean.csv")
 
@@ -368,7 +374,8 @@ temp = subset(clean, date == (as.Date(day)-365))
 oldactive = temp$positive-temp$Recovered-temp$deaths
 rm(temp)
 # week.new.pos = round(new_pos/7, digits = 1)
-Active = clean$positive-lag(clean$positive, n=5)-clean$deaths
+Active = clean$positive - monthvalue("positive",clean) + monthvalue("deaths",clean)[nrow(clean)] -
+    clean$deaths
 ```
 
 ```{r}
@@ -425,19 +432,21 @@ This week we had `r format(new_pos, scientific = FALSE, big.mark=",")` new posit
 
 `r clean$New.Deaths[nrow(clean)]` deaths in the last week. One in `r round(IowaPop/clean[nrow(clean),]$deaths, digits = 0)` people in Iowa has died of COVID-19. There are `r covid19$hospitalized[nrow(covid19)]` (`r round(tail(clean$hospitalized, n=1)/tail(Active,n=1)*100,1)`% of active) Iowans hospitalized for COVID-19. Of those, `r clean$ICU[nrow(clean)]` (`r tail( round(clean$ICU/clean$hospitalized*100,1) , n=1)`% of hospitalized) are in the ICU.
 
+`r if(today$New.Deaths >=1) {"The newly recorded deaths occurred on "}` `r if(today$New.Deaths >=1) {NDeaths[NDeaths$change != 0,"NewD"]}`
+
 One year ago, we had `r format(subset(clean, date == (day-365))$Still.Sick, scientific = FALSE, big.mark=",")` actively sick and `r subset(clean, date == (day-365))$New.Positive` new positive patients per day in Iowa. Two years ago, we had `r format(subset(clean, date == (day-730))$Still.Sick, scientific = FALSE, big.mark=",")` actively sick and `r subset(clean, date == (day-730))$New.Positive` new positive patients per day in Iowa.
 
 ```{r}
 #`r if(today$New.Deaths >=1) {"The newly recorded deaths occurred on "}` `r if(today$New.Deaths >=1) {NDeaths[NDeaths$change != 0,"NewD"]}`
 
-no = " (1)"
+no = day(date-7)
 OldDeaths <- read.csv(paste0("Total Deaths",no,".csv"))
 # OldDeaths <- read.csv(paste0("Total Deaths",day(mydate-1),".csv"))
 OldDeaths[,1] = as.Date(OldDeaths[,1])
 
 # weekOldDeaths <- read.csv(paste0("Total Deaths",day(mydate-7),".csv"))
 # weekOldDeaths[,1] = as.Date(OldDeaths[,1])
-n = ""
+n = day(date)
 NewDeaths <- read.csv(paste0("Total Deaths",n,".csv"))
 # NewDeaths <- read.csv(paste0("Total Deaths",day(mydate),".csv"))
 NewDeaths[,1] = as.Date(NewDeaths[,1])
