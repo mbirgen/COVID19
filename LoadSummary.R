@@ -1,16 +1,14 @@
 temp = read.csv("Summary.csv")
+temp = temp[1:100,]
 
 TestsNew = as.data.frame(temp) %>%
-    arrange(County)
-    # mutate(
-    #     # Active = Total.Positive.Tests 
-    #     #    - Total.Recovered
-    #     #    - Total.Deaths,
-    #        Date = as.Date(date))
+    arrange(County) %>%
+     mutate(
+            Date = as.Date(date))
 
 TestsOld = read.csv("TestsOld.csv")
 TestsOld = TestsOld %>%
-    mutate(Date = as.Date(Date))%>%
+    mutate(Date = as.Date(date))%>%
     select(County,Total.Positive.Tests,
            Total.Positive.Cases,
            Total.Deaths,

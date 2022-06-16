@@ -6,16 +6,16 @@ output: html_notebook
 
 ```{r initialization, results='hide', echo=FALSE}
  
- library(dplyr)
- library(lubridate)
- library(ggplot2)
- library(zoo)
- library(gsheet)
- library(plyr)
- library(pdftools)
- library(tidyverse)
- library(stringr)
- library(anytime)
+ require(dplyr)
+ require(lubridate)
+ require(ggplot2)
+ require(zoo)
+ require(gsheet)
+ require(plyr)
+ require(pdftools)
+ require(tidyverse)
+ require(stringr)
+ require(anytime)
 #  require(readxl)
 
 colMax <- function(data) sapply(data, max, na.rm = TRUE)
@@ -23,7 +23,7 @@ colMax <- function(data) sapply(data, max, na.rm = TRUE)
 
 Load data
 ```{r loadcounty, results='hide', echo=FALSE}
-library(readr)
+require(readr)
 county = read_csv("censusCounties.csv")
 ## Select data for only Iowa Counties
 county = subset(county, STATE == "Iowa")
@@ -32,6 +32,8 @@ county = subset(county, STATE == "Iowa")
 
 ```{r storedata1, echo=FALSE}
 date = Sys.Date()
+source("HospitalData.R")
+tail(inpatientSave[,0:4])
 source("LoadSummary.R")
 
 ##Add data to big csv files
@@ -116,6 +118,9 @@ newDeath <- Deaths[trows,-1]-Deaths[trows-1,-1]
 #     (Tested[trows,-1]-
 #          Tested[trows-7,-1])
 
+Positive[,102]=rowSums(Positive[,2:101], na.rm=TRUE)
+Positive.Tests[,102]=rowSums(Positive.Tests[,2:101], na.rm=TRUE)
+
 county_names <- colnames(Positive)
 county_names <- county_names[county_names != "Pending Investigation"]
 county_names <- county_names[county_names != "Pending.Investigation"]
@@ -145,19 +150,19 @@ for(i in 2:(length(county_names))){
         Positive = pos,
         Recovered = rec,
         # Hospitalized = hosp,
-        Deaths = death)
+        Deaths = death) 
     
-    # temp <- temp %>%
-    #     mutate(
-    #         Active = Positive - Recovered - Deaths,
-    #         New.Pos = Positive - lag(Positive),
-    # #         New.Test = Tested - lag(Tested),
-    #         New.Rec = Recovered - lag(Recovered),
-    #         New.Deaths = Deaths - lag(Deaths),
-    #         # True.Active = Positive - lag(Positive, n=2) -
-    #             Deaths
-    #     )
-    
+    temp <- temp %>%
+        mutate(
+            Active = Positive - Recovered - Deaths,
+            New.Pos = Positive - lag(Positive),
+    #         New.Test = Tested - lag(Tested),
+            New.Rec = Recovered - lag(Recovered),
+            New.Deaths = Deaths - lag(Deaths),
+            # True.Active = Positive - lag(Positive, n=2) -
+                Deaths
+        )
+
     assign(paste(i,"Data", sep=""), temp)
 
 }
