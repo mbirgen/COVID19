@@ -71,7 +71,7 @@ One year ago, we had `r subset(ButlerData, date == (day-365))$Active` active cas
  ***
  `r as.integer(Black.Hawklastrow["Active"])` active cases`r if(BHtemp$Active) {" (record)"}` in Black Hawk County, IA today. If the current infection trends continue, in 4 weeks we will have `r as.integer(Black.Hawklastrow["New.Pos"])*4` active cases. If you are in a group of `r groupsize` people in Black Hawk County there is a `r round(Risk$Black.Hawk.Risk*100, digits = 2)[1,]`% chance someone in the group is positive. One in `r round(BlackHawk_Population/Black.Hawklastrow$Deaths, digits = 0)[1,]` people in Black Hawk County has died of COVID-19.
  
-In the last 7 days: `r New.Positive.Tests[nrow(New.Positive.Tests),"Black.Hawk"]` new positive tests, `r as.integer(Black.Hawklastrow["New.Pos"])` new positive cases`r if(BHtemp$New.Pos) {" (record)"}`,and `r as.integer(Black.Hawklastrow["New.Deaths"])` new death(s).
+In the last 7 days: `r New.Positive.Tests[nrow(New.Positive.Tests),"Black.Hawk"]` new positive tests, `r as.integer(Black.Hawklastrow["New.Pos"])` new positive cases`r if(BHtemp$New.Pos) {" (record)"}`, and `r as.integer(Black.Hawklastrow["New.Deaths"])` new death(s).
 
 One year ago, we had `r subset(Black.HawkData, date == (day-365))$Active` active cases and  `r subset(Black.HawkData, date == (day-365))$New.Pos` new positive patients in Black Hawk County. 
 
