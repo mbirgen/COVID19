@@ -240,6 +240,8 @@ mutate(Bremer.SS = Bremer.Positive-Bremer.Death - Bremer.Recovered,
 Butler.SS = Butler.P - Butler.R,
 BlackHawk.SS = BlackHawk.P- BlackHawk.D - BlackHawk.R)
 
+covid19[covid19$date == as.Date(date),"New.Deaths"] = tail(sort(covid19$deaths),1)[1]-tail(sort(covid19$deaths),2)[1]
+
 write.csv(covid19, "covid19.csv",row.names = FALSE, na="")
 
 source("FillData2.R")
@@ -398,7 +400,7 @@ This week we had `r format(new_pos, scientific = FALSE, big.mark=",")` new posit
 
 According to HHS, there are `r inpatientSave[nrow(inpatientSave),"inpatient_beds_used_covid"]` (`r round(tail(inpatientSave$inpatient_beds_used_covid, n=1)/tail(Active,n=1)*100,1)`% of active cases) Iowans hospitalized for COVID-19, `r tail(inpatientSave$total_adult_patients_hospitalized_confirmed_covid, n=1)` adults and `r tail(inpatientSave$total_pediatric_patients_hospitalized_confirmed_covid, n=1)` children. Of those, `r tail(inpatientSave$total_ICU, n=1)` (`r tail( round(inpatientSave$total_ICU/inpatientSave$inpatient_beds_used_covid*100,1) , n=1)`% of hospitalized) are in the ICU, `r tail(inpatientSave$staffed_icu_adult_patients_confirmed_covid, n=1)` adults and `r tail(inpatientSave$staffed_icu_pediatric_patients_confirmed_covid, n=1)` children. Hospitals have reported `r sum(tail(inpatientSave$deaths_covid, n=7))` COVID-19 deaths in the last 7 days.
 
-`r clean$New.Deaths[nrow(clean)]` deaths in the last week. One in `r round(IowaPop/clean[nrow(clean),]$deaths, digits = 0)` people in Iowa has died of COVID-19.  
+`r tail(covid19$New.Deaths,1)` deaths in the last week. One in `r round(IowaPop/tail(covid19$deaths,1), digits = 0)` people in Iowa has died of COVID-19.  
 `r if(today$New.Deaths >=1) {"The newly recorded deaths occurred on "}` `r if(today$New.Deaths >=1) {NDeaths[NDeaths$change != 0,"NewD"]}`
 
 One year ago, we had `r format(subset(clean, date == (day-365))$Still.Sick, scientific = FALSE, big.mark=",")` actively sick and `r subset(clean, date == (day-365))$New.Positive` new positive patients per day in Iowa. Two years ago, we had `r format(subset(clean, date == (day-730))$Still.Sick, scientific = FALSE, big.mark=",")` actively sick and `r subset(clean, date == (day-730))$New.Positive` new positive patients per day in Iowa.

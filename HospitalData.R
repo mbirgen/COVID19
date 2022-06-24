@@ -19,7 +19,9 @@ if(sum(grepl(date, covid19$date)) == 0){
     inpatientSave[inpatientSave$date == date,] = temp
     inpatientSave$date[nrow(inpatientSave)] = as.character(date)
 }
-inpatientSave = inpatientSave %>% unique()
+inpatientSave = inpatientSave %>% unique() %>% 
+    mutate(total_ICU= staffed_icu_adult_patients_confirmed_covid + 
+    staffed_icu_pediatric_patients_confirmed_covid)
 
 write.csv(inpatientSave, "HospitalData.csv",row.names = FALSE)
 covid19[covid19$date == as.Date(date),c("hospitalized", 
