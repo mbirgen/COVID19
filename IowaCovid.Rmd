@@ -95,8 +95,9 @@ if(anydate(Positive[nrow(Positive), 1]) != date){
 } else{
       # Tested[Tested$date == date,] = d_county["Individuals.Tested",]
     Positive[Positive$date == date,] =  d_county["Total.Positive.Cases",]
-    # Recovered[Recovered$date==date,] =  d_county["Total.Recovered",]
-    Deaths[Deaths$date == date,] = d_county["Total.Deaths",]
+    #  Positive[nrow(Positive),]=  d_county["Total.Positive.Cases",]
+    # # Recovered[Recovered$date==date,] =  d_county["Total.Recovered",]
+    Deaths[nrow(Deaths),] = d_county["Total.Deaths",]
     # Active[Active$date == date,] =  d_county["Active",]
     Positive.Tests[Positive.Tests$date == date,] =  d_county["Total.Positive.Tests",]
 }
