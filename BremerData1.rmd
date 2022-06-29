@@ -33,7 +33,7 @@ Butemp = data.frame(colMax(ButlerData) == Butlerlastrow)
 todaytemp = data.frame(colMax(covid19[,-1]) == today[,-1])
 
 ###########Risk Calculation#####################
-groupsize = 15
+groupsize = 100
 
 
 Risk <- Risk %>% mutate(Bremer.Prob = Bremerlastrow$Active/Bremer_Population 
