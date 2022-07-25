@@ -32,142 +32,20 @@ county = subset(county, STATE == "Iowa")
 
 ```{r storedata1, echo=FALSE}
 date = Sys.Date()
+covid19 <- read.csv("covid19.csv", 
+                    stringsAsFactors = FALSE)
+names(covid19)[1] <- "date"
+covid19$date = anydate(covid19$date)
+
 source("HospitalData.R")
+
 tail(inpatientSave[,0:3])
+
+ tail(inpatientSave[,c("date","inpatient_beds_used_covid")],7)
+ 
 source("LoadSummary.R")
 
-##Add data to big csv files
-temp = c(County = "Totals",
-                   as.integer(colSums(TestsNew[2:4])))
-# temp[2:3] = sapply(temp[2:3], as.integer)
-TestsNew1 = TestsNew %>%
-  select("County", "Total.Positive.Tests","Total.Positive.Cases", "Total.Deaths")%>%
-  rbind(temp)
-
-TestsNew1 =rbind("date"= as.character(date),TestsNew1)
-d_county <- t(TestsNew1)
-
-# d_county <- t(CountyDataOld)
-# county_names <- d_county[1,]
-colnames(d_county) <- d_county[1,]
-d_county = d_county[-1,]
-colnames(d_county)[1] <- "date"
-d_county[,-1] = sapply(d_county[,-1], as.integer)
-# # d_county[9,] = sapply(d_county[9,], as.numeric)
-# # d_county <- as.data.frame(d_county)%>%
-# #     mutate(Total = Reduce(`+`, .))
-# d_county <- cbind(date=as.character(date),d_county)
-
-# Tested <- read.csv( "CountyData/CountyTests.csv", stringsAsFactors=FALSE)
-# Tested <- Tested[,-1]
-Positive <- read.csv( "CountyData/CountyPositive.csv", stringsAsFactors=FALSE)
-Positive <- Positive[,-1]
-Positive.Tests <- read.csv( "CountyData/CountyPositive.csv", stringsAsFactors=FALSE)
-Positive.Tests <- Positive.Tests[,-1]
-# Recovered <- read.csv( "CountyData/CountyRecovered.csv", stringsAsFactors=FALSE)
-# Recovered <- Recovered[,-1]
-Deaths <- read.csv( "CountyData/CountyDeaths.csv", stringsAsFactors=FALSE)
-Deaths <- Deaths[,-1]
-# Active <- read.csv( "CountyData/CountyActive.csv", stringsAsFactors=FALSE)
-# Active <- Active[,-1]
-templist = c(
-  # "Tested", 
-  "Positive", 
-  #"Recovered", 
-  "Deaths"
-  #, "Active" 
-  )
-# 
-# Tested <- Tested[-nrow(Tested),]
-# Positive <- Positive[-nrow(Positive),]
-# Recovered <- Recovered[-nrow(Recovered),]
-#   #Active <- Active[-nrow(Active),]
-# Deaths <- Deaths[-nrow(Deaths),]
-
-
-if(anydate(Positive[nrow(Positive), 1]) != date){
-    # Tested <- rbind(Tested, d_county["Individuals.Tested",])
-    Positive <- rbind(Positive, d_county["Total.Positive.Cases",])
-    # Recovered <- rbind(Recovered, d_county["Total.Recovered",])
-    Deaths <- rbind(Deaths, d_county["Total.Deaths",])
-    # Active <- rbind(Active, d_county["Active",])
-        Positive.Tests <- rbind(Positive.Tests, d_county["Total.Positive.Tests",])
-} else{
-      # Tested[Tested$date == date,] = d_county["Individuals.Tested",]
-    Positive[Positive$date == date,] =  d_county["Total.Positive.Cases",]
-    #  Positive[nrow(Positive),]=  d_county["Total.Positive.Cases",]
-    # # Recovered[Recovered$date==date,] =  d_county["Total.Recovered",]
-    Deaths[nrow(Deaths),] = d_county["Total.Deaths",]
-    # Active[Active$date == date,] =  d_county["Active",]
-    Positive.Tests[Positive.Tests$date == date,] =  d_county["Total.Positive.Tests",]
-}
-
-# Tested[,-1] = sapply(Tested[,-1], as.integer)
-Positive[,-1] = sapply(Positive[,-1], as.integer)
-Positive.Tests[,-1] = sapply(Positive.Tests[,-1], as.integer)
-# Recovered[,-1] = sapply(Recovered[,-1], as.integer)
-Deaths[,-1] = sapply(Deaths[,-1], as.integer)
-# Active[,-1] = sapply(Active[,-1], as.integer)
-
-trows <- nrow(Positive)
-# newTest <- Tested[trows,-1]-Tested[trows-1,-1]
-newPos <- Positive[trows,-1]-Positive[trows-1,-1]
-# newRec <- Recovered[trows,-1]-Recovered[trows-1,-1]
-newDeath <- Deaths[trows,-1]-Deaths[trows-1,-1]
-# PerPos7 <- (Positive[trows,-1]-
-#                 Positive[trows-7,-1])/
-#     (Tested[trows,-1]-
-#          Tested[trows-7,-1])
-
-Positive[,102]=rowSums(Positive[,2:101], na.rm=TRUE)
-Positive.Tests[,102]=rowSums(Positive.Tests[,2:101], na.rm=TRUE)
-
-county_names <- colnames(Positive)
-county_names <- county_names[county_names != "Pending Investigation"]
-county_names <- county_names[county_names != "Unknown"]
-county_names <- county_names[county_names != "Pending.Investigation"]
-# county_names <- county_names[-76]
-county_names <- gsub(" ", ".", county_names)
-county_names <- gsub("'", ".", county_names)
-dates <- anydate(Positive[,1]    )
-# if(!("Pending.Investigation" %in% names(hospital))){
-#     target = which(names(hospital)== "Palo.Alto")
-#     hospital = cbind(hospital[,1:target,drop=F], data.frame("Pending.Investigation"=""), hospital[,(target+1):length(hospital),drop=F])
-# }
-
-for(i in 2:(length(county_names))){
-    i = county_names[i]
-    # test <- Tested[,i]
-    pos <- as.integer(Positive[,i])
-    temp = length(pos)
-    postest <- as.integer(Positive.Tests[,i])
-    postest = c(rep(NA, length(pos)-length(postest)),postest)
-    rec <- as.numeric(monthvalue(i,Positive)-monthvalue(i,Deaths))
-    # hosp <- as.integer(hospital[,i])
-    # hosp = c(rep(NA, length(test)-length(hosp)),hosp)
-    death <- as.numeric(Deaths[,i])
-    temp <- data.frame(
-        date = dates,
-        TestedPos = postest,
-        Positive = pos,
-        Recovered = rec,
-        # Hospitalized = hosp,
-        Deaths = death) 
-    
-    temp <- temp %>%
-        mutate(
-            Active = Positive - Recovered - Deaths,
-            New.Pos = Positive - lag(Positive),
-    #         New.Test = Tested - lag(Tested),
-            New.Rec = Recovered - lag(Recovered),
-            New.Deaths = Deaths - lag(Deaths),
-            # True.Active = Positive - lag(Positive, n=2) -
-                Deaths
-        )
-
-    assign(paste(i,"Data", sep=""), temp)
-
-}
+source("LoadBigCSV.R")
 ```
 
 
@@ -183,6 +61,25 @@ write.csv(Deaths, "CountyData/CountyDeaths.csv")
 
 ```
 
+
+
+```{r}
+# qplot(date, New.Positive.Tests, data = tail(covid19, n=40))+geom_smooth(span = 0.3, se = TRUE) 
+
+qplot(date, hospitalized, data = tail(covid19, n=80))+geom_smooth(span = 0.3, se = TRUE) 
+
+##############################################
+mergedYearonYearHospMeans = covid19 %>%
+    drop_na(hospitalized) %>%
+    select("date","hospitalized") %>%
+    mutate(week = week(date),
+           year = year(date)) %>%
+    group_by(year, week) %>%
+    summarise_at(vars(hospitalized), list(WeeklyAve = mean))
+
+qplot(week, WeeklyAve, data=mergedYearonYearHospMeans, color = factor(year)) + xlab("Week of Year") + ylab("Weekly Average Hospitalized")+geom_smooth(span = 0.3, se = TRUE)
+
+```
 ```{r filldata, results='hide'}
 #####################################
 #### Fill in covid19
@@ -241,32 +138,13 @@ mutate(Bremer.SS = Bremer.Positive-Bremer.Death - Bremer.Recovered,
 Butler.SS = Butler.P - Butler.R,
 BlackHawk.SS = BlackHawk.P- BlackHawk.D - BlackHawk.R)
 
-covid19[covid19$date == as.Date(date),"New.Deaths"] = tail(sort(covid19$deaths),1)[1]-tail(sort(covid19$deaths),2)[1]
+covid19[covid19$date == as.Date(date),"New.Deaths"] = tail(unique(sort(covid19$deaths)),1)[1]-tail(unique(sort(covid19$deaths)),2)[1]
 
 write.csv(covid19, "covid19.csv",row.names = FALSE, na="")
 
 source("FillData2.R")
 
 ```
-
-```{r}
-# qplot(date, New.Positive.Tests, data = tail(covid19, n=40))+geom_smooth(span = 0.3, se = TRUE) 
-
-qplot(date, hospitalized, data = tail(covid19, n=80))+geom_smooth(span = 0.3, se = TRUE) 
-
-##############################################
-mergedYearonYearHospMeans = covid19 %>%
-    drop_na(hospitalized) %>%
-    select("date","hospitalized") %>%
-    mutate(week = week(date),
-           year = year(date)) %>%
-    group_by(year, week) %>%
-    summarise_at(vars(hospitalized), list(WeeklyAve = mean))
-
-qplot(week, WeeklyAve, data=mergedYearonYearHospMeans, color = factor(year)) + xlab("Week of Year") + ylab("Weekly Average Hospitalized")+geom_smooth(span = 0.3, se = TRUE)
-
-```
-
 
 ```{r clean, echo = FALSE}
 
@@ -404,7 +282,9 @@ According to HHS, there are `r inpatientSave[nrow(inpatientSave),"inpatient_beds
 `r tail(covid19$New.Deaths,1)` deaths in the last week. One in `r round(IowaPop/tail(covid19$deaths,1), digits = 0)` people in Iowa has died of COVID-19.  
 `r if(today$New.Deaths >=1) {"The newly recorded deaths occurred on "}` `r if(today$New.Deaths >=1) {NDeaths[NDeaths$change != 0,"NewD"]}`
 
-One year ago, we had `r format(subset(clean, date == (day-365))$Still.Sick, scientific = FALSE, big.mark=",")` actively sick and `r subset(clean, date == (day-365))$New.Positive` new positive patients per day in Iowa. Two years ago, we had `r format(subset(clean, date == (day-730))$Still.Sick, scientific = FALSE, big.mark=",")` actively sick and `r subset(clean, date == (day-730))$New.Positive` new positive patients per day in Iowa.
+One year ago, we had `r format(subset(clean, date == (day-365))$Still.Sick, scientific = FALSE, big.mark=",")` actively sick and `r subset(clean, date == (day-365))$New.Positive` new positive patients per day in Iowa. 
+
+Two years ago, we had `r format(subset(clean, date == (day-730))$Still.Sick, scientific = FALSE, big.mark=",")` actively sick and `r subset(clean, date == (day-730))$New.Positive` new positive patients per day in Iowa.
 
 ```{r}
 #`r if(today$New.Deaths >=1) {"The newly recorded deaths occurred on "}` `r if(today$New.Deaths >=1) {NDeaths[NDeaths$change != 0,"NewD"]}`

@@ -51,6 +51,10 @@ Risk = Risk %>% mutate(
   Linn.Risk = 1-(1-Linn.Prob*5)^groupsize
   )
 ```
+```{r, echo=FALSE}
+#  Two years ago, we had `r subset(BremerData, date == (day-730))$Active` active cases and  `r subset(BremerData, date == (day-730))$New.Pos` new positive patients in Bremer County. 
+```
+
 `r day`: `r as.integer(Bremerlastrow$Active)` active cases `r if(Brtemp$Active) {" (record)"}` in Bremer County, IA today. If the current infection trends continue, in 4 weeks we will have `r as.integer(Bremerlastrow["New.Pos"]*4)` active cases.
 
 In the last 7 days: `r New.Positive.Tests[nrow(New.Positive.Tests),"Bremer"]` new positive tests, `r as.integer(Bremerlastrow$New.Pos)`  new positive cases`r if(Brtemp$New.Pos) {" (record)"}`,  and `r as.integer(Bremerlastrow["New.Deaths"])` new death(s).
@@ -58,7 +62,7 @@ In the last 7 days: `r New.Positive.Tests[nrow(New.Positive.Tests),"Bremer"]` ne
 If you are in a group of `r groupsize` random people in Bremer County there is a `r round(Risk$Bremer.Risk*100, digits = 2)[1,]`% chance someone in the group is positive. One in `r round(Bremer_Population/Bremerlastrow$Deaths, digits = 0)[1,]` people in Bremer County has died of COVID-19.
 
  One year ago, we had `r subset(BremerData, date == (day-365))$Active` active cases and  `r subset(BremerData, date == (day-365))$New.Pos` new positive patients in Bremer County. 
- 
+
 ***
  `r as.integer(Butlerlastrow["Active"])` active cases`r if(Butemp$Active) {" (record)"}` in Butler County, IA today. If the current infection trends continue, in 4 weeks we will have `r as.integer(Butlerlastrow["New.Pos"]*4)` active cases. 
  

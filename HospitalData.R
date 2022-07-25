@@ -32,4 +32,4 @@ covid19[covid19$date == as.Date(date),c("hospitalized",
 covid19[covid19$date == as.Date(date),"Admit"] = 
     sum((inpatient %>% select(contains("previous_day")))[1:4])    
 covid19 = covid19 %>% unique()
-write.csv(covid19, "covid19.csv",row.names = FALSE)
+write.csv(covid19, "covid19.csv",row.names = FALSE, na="")
