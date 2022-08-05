@@ -19,6 +19,10 @@ output: html_notebook
 #  require(readxl)
 
 colMax <- function(data) sapply(data, max, na.rm = TRUE)
+closestdate <- function(DT, D){
+    which(abs(DT$date-(date-D)) == 
+              min(abs(DT$date-date+D)))
+}
 ```
 
 Load data
@@ -32,6 +36,8 @@ county = subset(county, STATE == "Iowa")
 
 ```{r storedata1, echo=FALSE}
 date = Sys.Date()
+oneyearago = closestdate(covid19,365)
+twoyearago = closestdate(covid19,730)
 covid19 <- read.csv("covid19.csv", 
                     stringsAsFactors = FALSE)
 names(covid19)[1] <- "date"
@@ -282,9 +288,9 @@ According to HHS, there are `r inpatientSave[nrow(inpatientSave),"inpatient_beds
 `r tail(covid19$New.Deaths,1)` deaths in the last week. One in `r round(IowaPop/tail(covid19$deaths,1), digits = 0)` people in Iowa has died of COVID-19.  
 `r if(today$New.Deaths >=1) {"The newly recorded deaths occurred on "}` `r if(today$New.Deaths >=1) {NDeaths[NDeaths$change != 0,"NewD"]}`
 
-One year ago, we had `r format(subset(clean, date == (day-365))$Still.Sick, scientific = FALSE, big.mark=",")` actively sick and `r subset(clean, date == (day-365))$New.Positive` new positive patients per day in Iowa. 
+One year ago, we had `r format(covid19[oneyearago,]$Still.Sick, scientific = FALSE, big.mark=",")` actively sick and `r format(covid19[oneyearago,]$New.Positive, scientific = FALSE, big.mark=",")` new positive patients per day in Iowa. 
 
-Two years ago, we had `r format(subset(clean, date == (day-730))$Still.Sick, scientific = FALSE, big.mark=",")` actively sick and `r subset(clean, date == (day-730))$New.Positive` new positive patients per day in Iowa.
+Two years ago, we had `r format(covid19[twoyearago,]$Still.Sick, scientific = FALSE, big.mark=",")` actively sick and `r covid19[twoyearago,]$New.Positive` new positive patients per day in Iowa.
 
 ```{r}
 #`r if(today$New.Deaths >=1) {"The newly recorded deaths occurred on "}` `r if(today$New.Deaths >=1) {NDeaths[NDeaths$change != 0,"NewD"]}`
