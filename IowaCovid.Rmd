@@ -45,7 +45,6 @@ covid19$date = anydate(covid19$date)
 
 source("HospitalData.R")
 
-tail(inpatientSave[,0:3])
 
  tail(inpatientSave[,c("date","inpatient_beds_used_covid")],7)
  
@@ -79,11 +78,11 @@ mergedYearonYearHospMeans = covid19 %>%
     drop_na(hospitalized) %>%
     select("date","hospitalized") %>%
     mutate(week = week(date),
-           year = year(date)) %>%
+           year = as.factor(year(date))) %>%
     group_by(year, week) %>%
-    summarise_at(vars(hospitalized), list(WeeklyAve = mean))
+    summarise_at(vars(hospitalized), list(WeeklyAve = mean)) 
 
-qplot(week, WeeklyAve, data=mergedYearonYearHospMeans, color = factor(year)) + xlab("Week of Year") + ylab("Weekly Average Hospitalized")+geom_smooth(span = 0.3, se = TRUE)
+qplot(week, WeeklyAve, data=mergedYearonYearHospMeans, color = year) + xlab("Week of Year") + ylab("Weekly Average Hospitalized")+geom_smooth(span = 0.3, se = TRUE)
 
 ```
 ```{r filldata, results='hide'}
