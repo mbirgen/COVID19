@@ -54,21 +54,8 @@ source("LoadBigCSV.R")
 ```
 
 
-```{r storedata2, echo=FALSE}
-    # write.csv(temp, paste("CountyData/",county_names[i],
-    # "Data.csv", sep=""))
-# write.csv(Tested, "CountyData/CountyTests.csv")
-write.csv(Positive, "CountyData/CountyPositive.csv")
-write.csv(Positive.Tests, "CountyData/CountyPositiveTests.csv")
-# write.csv(Recovered, "CountyData/CountyRecovered.csv")
-write.csv(Deaths, "CountyData/CountyDeaths.csv")
-# write.csv(Active, "CountyData/CountyActive.csv")
-
-```
-
-
-
 ```{r}
+
 # qplot(date, New.Positive.Tests, data = tail(covid19, n=40))+geom_smooth(span = 0.3, se = TRUE) 
 
 qplot(date, hospitalized, data = tail(covid19, n=80))+geom_smooth(span = 0.3, se = TRUE) 
@@ -85,6 +72,21 @@ mergedYearonYearHospMeans = covid19 %>%
 qplot(week, WeeklyAve, data=mergedYearonYearHospMeans, color = year) + xlab("Week of Year") + ylab("Weekly Average Hospitalized")+geom_smooth(span = 0.3, se = TRUE)
 
 ```
+
+
+```{r storedata2, echo=FALSE}
+    # write.csv(temp, paste("CountyData/",county_names[i],
+    # "Data.csv", sep=""))
+# write.csv(Tested, "CountyData/CountyTests.csv")
+write.csv(Positive, "CountyData/CountyPositive.csv")
+write.csv(Positive.Tests, "CountyData/CountyPositiveTests.csv")
+# write.csv(Recovered, "CountyData/CountyRecovered.csv")
+write.csv(Deaths, "CountyData/CountyDeaths.csv")
+# write.csv(Active, "CountyData/CountyActive.csv")
+
+```
+
+
 ```{r filldata, results='hide'}
 #####################################
 #### Fill in covid19
@@ -133,9 +135,10 @@ covid19[covid19$date == i,
         Positive[anydate(Positive$date) == date,"Totals"]
     # covid19[covid19$date == as.Date(date),"Recovered"] = 
     #     Recovered[anydate(Recovered$date) == date,"Totals"]
-    covid19[covid19$date == as.Date(date),"deaths"] = Deaths[anydate(Deaths$date) == as.Date(date),"Totals"]
+ OneMonthAgo = closestdate(covid19, 28)
+       covid19[covid19$date == as.Date(date),"deaths"] = Deaths[anydate(Deaths$date) == as.Date(date),"Totals"]
  covid19[,"Recovered"] =
-     monthvalue("positive", covid19) - monthvalue("deaths", covid19)
+     covid19[OneMonthAgo,"positive"] - covid19[OneMonthAgo,"deaths"]
 
 covid19[-1] = sapply(covid19[,-1], as.numeric)
 covid19 = covid19 %>%
@@ -226,8 +229,13 @@ temp = subset(clean, date == (as.Date(day)-365))
 oldactive = temp$positive-temp$Recovered-temp$deaths
 rm(temp)
 # week.new.pos = round(new_pos/7, digits = 1)
-Active = clean$positive - monthvalue("positive",clean) + monthvalue("deaths",clean)[nrow(clean)] -
+OneMonthAgo = closestdate(clean, 28)
+Active = clean$positive - clean[OneMonthAgo,"positive"] + clean[OneMonthAgo,"deaths"]-
     clean$deaths
+
+CompleteSick = covid19[!is.na(covid19$Still.Sick),]
+oneyearago = closestdate(CompleteSick,365)
+twoyearago = closestdate(CompleteSick,730)
 ```
 
 ```{r}
@@ -287,9 +295,9 @@ According to HHS, there are `r inpatientSave[nrow(inpatientSave),"inpatient_beds
 `r tail(covid19$New.Deaths,1)` deaths in the last week. One in `r round(IowaPop/tail(covid19$deaths,1), digits = 0)` people in Iowa has died of COVID-19.  
 `r if(today$New.Deaths >=1) {"The newly recorded deaths occurred on "}` `r if(today$New.Deaths >=1) {NDeaths[NDeaths$change != 0,"NewD"]}`
 
-One year ago, we had `r format(covid19[oneyearago,]$Still.Sick, scientific = FALSE, big.mark=",")` actively sick and `r format(covid19[oneyearago,]$New.Positive, scientific = FALSE, big.mark=",")` new positive patients per day in Iowa. 
+One year ago, we had `r format(CompleteSick[oneyearago,]$Still.Sick, scientific = FALSE, big.mark=",")` actively sick and `r format(CompleteSick[oneyearago,]$New.Positive, scientific = FALSE, big.mark=",")` new positive patients per day in Iowa. 
 
-Two years ago, we had `r format(covid19[twoyearago,]$Still.Sick, scientific = FALSE, big.mark=",")` actively sick and `r covid19[twoyearago,]$New.Positive` new positive patients per day in Iowa.
+Two years ago, we had `r format(CompleteSick[twoyearago,]$Still.Sick, scientific = FALSE, big.mark=",")` actively sick and `r CompleteSick[twoyearago,]$New.Positive` new positive patients per day in Iowa.
 
 ```{r}
 #`r if(today$New.Deaths >=1) {"The newly recorded deaths occurred on "}` `r if(today$New.Deaths >=1) {NDeaths[NDeaths$change != 0,"NewD"]}`

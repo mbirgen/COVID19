@@ -74,6 +74,8 @@ county_names <- county_names[county_names != "Pending.Investigation"]
 county_names <- gsub(" ", ".", county_names)
 county_names <- gsub("'", ".", county_names)
 dates <- anydate(Positive[,1]    )
+Positive$date = dates
+OneMonthAgo = closestdate(Positive, 28)
 # if(!("Pending.Investigation" %in% names(hospital))){
 #     target = which(names(hospital)== "Palo.Alto")
 #     hospital = cbind(hospital[,1:target,drop=F], data.frame("Pending.Investigation"=""), hospital[,(target+1):length(hospital),drop=F])
@@ -86,7 +88,7 @@ for(i in 2:(length(county_names))){
     temp = length(pos)
     postest <- as.integer(Positive.Tests[,i])
     postest = c(rep(NA, length(pos)-length(postest)),postest)
-    rec <- as.numeric(monthvalue(i,Positive)-monthvalue(i,Deaths))
+    rec <- as.numeric(Positive[OneMonthAgo,i]-Deaths[OneMonthAgo,i])
     # hosp <- as.integer(hospital[,i])
     # hosp = c(rep(NA, length(test)-length(hosp)),hosp)
     death <- as.numeric(Deaths[,i])
