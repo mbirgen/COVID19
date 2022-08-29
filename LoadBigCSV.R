@@ -66,6 +66,16 @@ newDeath <- Deaths[trows,-1]-Deaths[trows-1,-1]
 Positive[,102]=rowSums(Positive[,2:101], na.rm=TRUE)
 Positive.Tests[,102]=rowSums(Positive.Tests[,2:101], na.rm=TRUE)
 
+for(i in (nrow(Recovered2)+1):nrow(Positive)){
+    tempday = Positive$date[i]
+    lastmonth = closestdate2(Positive,tempday,28)
+    tempPos = Positive[lastmonth,]
+    tempDeath = Deaths[i,]
+    tempRec = tempPos[,-1] - tempDeath[,-1]
+    tempRec = cbind(date = as.character(tempday), tempRec)
+    Recovered2 = rbind(Recovered2,tempRec)
+}
+
 county_names <- colnames(Positive)
 county_names <- county_names[county_names != "Pending Investigation"]
 county_names <- county_names[county_names != "Unknown"]
@@ -88,7 +98,7 @@ for(i in 2:(length(county_names))){
     temp = length(pos)
     postest <- as.integer(Positive.Tests[,i])
     postest = c(rep(NA, length(pos)-length(postest)),postest)
-    rec <- as.numeric(Positive[OneMonthAgo,i]-Deaths[OneMonthAgo,i])
+    rec <- as.numeric(Recovered2[,i])
     # hosp <- as.integer(hospital[,i])
     # hosp = c(rep(NA, length(test)-length(hosp)),hosp)
     death <- as.numeric(Deaths[,i])

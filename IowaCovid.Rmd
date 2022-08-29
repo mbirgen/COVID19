@@ -52,12 +52,7 @@ source("LoadSummary.R")
 
 source("LoadBigCSV.R")
 ```
-
-
 ```{r}
-
-# qplot(date, New.Positive.Tests, data = tail(covid19, n=40))+geom_smooth(span = 0.3, se = TRUE) 
-
 qplot(date, hospitalized, data = tail(covid19, n=80))+geom_smooth(span = 0.3, se = TRUE) 
 
 ##############################################
@@ -70,8 +65,8 @@ mergedYearonYearHospMeans = covid19 %>%
     summarise_at(vars(hospitalized), list(WeeklyAve = mean)) 
 
 qplot(week, WeeklyAve, data=mergedYearonYearHospMeans, color = year) + xlab("Week of Year") + ylab("Weekly Average Hospitalized")+geom_smooth(span = 0.3, se = TRUE)
-
 ```
+
 
 
 ```{r storedata2, echo=FALSE}
@@ -80,8 +75,8 @@ qplot(week, WeeklyAve, data=mergedYearonYearHospMeans, color = year) + xlab("Wee
 # write.csv(Tested, "CountyData/CountyTests.csv")
 write.csv(Positive, "CountyData/CountyPositive.csv")
 write.csv(Positive.Tests, "CountyData/CountyPositiveTests.csv")
-# write.csv(Recovered, "CountyData/CountyRecovered.csv")
-write.csv(Deaths, "CountyData/CountyDeaths.csv")
+ write.csv(Recovered, "CountyData/CountyRecovered.csv")
+ywrite.csv(Deaths, "CountyData/CountyDeaths.csv")
 # write.csv(Active, "CountyData/CountyActive.csv")
 
 ```

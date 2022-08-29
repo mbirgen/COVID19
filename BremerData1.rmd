@@ -123,7 +123,7 @@ temp = temp[temp$date >= (mydate-graphlength),]
 mtemp = melt(temp, id.vars = "date", 
              measure.vars = c('Bremer', 'Butler', 'BlackHawk'))
 printplot <- qplot(as.Date(date), value, color = variable, data = mtemp, geom = "point") +
-  geom_smooth(span = 0.3, se = TRUE) +
+  geom_smooth(span = 0.5, se = TRUE) +
     ylab("Cases per 100,000") +
     xlab("Date")+
     labs(color = "County", title = paste("Active Cases Per 100,000", mydate))
