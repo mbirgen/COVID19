@@ -1,4 +1,10 @@
 ##Add data to big csv files
+
+closestdate2 <- function(DT, day, D){
+    which(abs(anydate(DT$date)-(anydate(day)-D)) == 
+              min(abs(anydate(DT$date)-anydate(day)+D)))
+}
+
 temp = c(County = "Totals",
          as.integer(colSums(TestsNew[2:4])))
 # temp[2:3] = sapply(temp[2:3], as.integer)

@@ -7,7 +7,7 @@ output:
 Welcome to the Bremer County COVID-19 Data Page.
 
 ## Summary
-```{r,echo=FALSE}
+```{r,echo=FALSE, message=FALSE}
 require(knitr)
 day <- Sys.Date()
 colMax <- function(data) sapply(data, max, na.rm = TRUE)
@@ -101,7 +101,7 @@ In the last 7 days: `r New.Positive.Tests[nrow(New.Positive.Tests),"Black.Hawk"]
  Two years ago, we had `r Black.HawkData[BHtwoyearago,]$Active` active cases and  `r Black.HawkData[BHtwoyearago,]$New.Pos` new positive per day patients in Black Hawk County. 
 
  
-```{r, echo = False}
+```{r, echo = False, message=FALSE}
 require(reshape2)
 mydate <- Sys.Date()
 graphlength = 90

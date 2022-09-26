@@ -4,7 +4,7 @@ author: "Mariah Birgen"
 output: html_notebook
 ---
 
-```{r initialization, results='hide', echo=FALSE}
+```{r initialization, results='hide', message=FALSE, echo=FALSE}
  
  require(dplyr)
  require(lubridate)
@@ -36,13 +36,14 @@ county = subset(county, STATE == "Iowa")
 
 ```{r storedata1, echo=FALSE}
 date = Sys.Date()
-oneyearago = closestdate(covid19,365)
-twoyearago = closestdate(covid19,730)
 covid19 <- read.csv("covid19.csv", 
                     stringsAsFactors = FALSE)
 names(covid19)[1] <- "date"
 covid19$date = anydate(covid19$date)
+oneyearago = closestdate(covid19,365)
+twoyearago = closestdate(covid19,730)
 
+# inpatientSave = inpatientSave[-nrow(inpatientSave),]
 source("HospitalData.R")
 
 
@@ -68,15 +69,14 @@ qplot(week, WeeklyAve, data=mergedYearonYearHospMeans, color = year) + xlab("Wee
 ```
 
 
-
 ```{r storedata2, echo=FALSE}
     # write.csv(temp, paste("CountyData/",county_names[i],
     # "Data.csv", sep=""))
 # write.csv(Tested, "CountyData/CountyTests.csv")
 write.csv(Positive, "CountyData/CountyPositive.csv")
 write.csv(Positive.Tests, "CountyData/CountyPositiveTests.csv")
- write.csv(Recovered, "CountyData/CountyRecovered.csv")
-ywrite.csv(Deaths, "CountyData/CountyDeaths.csv")
+ write.csv(Recovered2, "CountyData/CountyRecovered.csv")
+ write.csv(Deaths, "CountyData/CountyDeaths.csv")
 # write.csv(Active, "CountyData/CountyActive.csv")
 
 ```
@@ -149,7 +149,7 @@ source("FillData2.R")
 
 ```
 
-```{r clean, echo = FALSE}
+```{r clean, echo = FALSE, message=FALSE}
 
 #######################################
 ##  Create Clean Dataset
@@ -192,7 +192,7 @@ clean[500:nrow(clean),"New.Bremer.Positive.Tests"] = weeklag("Bremer.Positive.Te
 
 ```
 
-```{r, echo = FALSE}
+```{r, echo = FALSE, message=FALSE}
 today <- clean[nrow(clean),]
 day <- today$date
 temp = tail(statedata[,"Individuals.Tested"],n=2)
