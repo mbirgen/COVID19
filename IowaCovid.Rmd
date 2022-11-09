@@ -195,7 +195,7 @@ clean[500:nrow(clean),"New.Bremer.Positive.Tests"] = weeklag("Bremer.Positive.Te
 ```{r, echo = FALSE, message=FALSE}
 today <- clean[nrow(clean),]
 day <- today$date
-temp = tail(statedata[,"Individuals.Tested"],n=2)
+# temp = tail(statedata[,"Individuals.Tested"],n=2)
 new_pos <- today$New.Positive
 # percent_pos <- round(today$New.Positive/today$New.Positive.Tests*100, digits = 1)
 

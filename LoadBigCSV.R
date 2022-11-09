@@ -29,6 +29,10 @@ Positive.Tests <- Positive.Tests[,-1]
 Deaths <- read.csv( "CountyData/CountyDeaths.csv", stringsAsFactors=FALSE)
 Deaths <- Deaths[,-1]
 
+
+Recovered2 <- read.csv( "CountyData/CountyRecovered.csv", stringsAsFactors=FALSE)
+Recovered2 <- Recovered2[,-1]
+
 templist = c(
     "Positive", 
     "Deaths"

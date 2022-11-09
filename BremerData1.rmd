@@ -49,14 +49,15 @@ BHtwoyearago = closestdate(Black.HawkData, 730)
 
 ###########Risk Calculation#####################
 groupsize = 30
+# Risk <- data.frame(Date = date)
 
-
-Risk <- Risk %>% mutate(Bremer.Prob = Bremerlastrow$Active/Bremer_Population 
-, 'Black.Hawk.Prob' = Black.Hawklastrow$Active/BlackHawk_Population, 
-'Butler.Prob' = Butlerlastrow$Active/Butler_Population,
-'WSR.Prob' = (Butlerlastrow$Active+ Bremerlastrow$Active)/(Butler_Population+ Bremer_Population), 
-'Linn.Prob' = LinnData[nrow(LinnData),]$Active/Linn_Population,
-'Johnson.Prob' = JohnsonData[nrow(JohnsonData),]$Active/Johnson_Population)
+Risk <- data.frame(Date = date,Bremer.Prob = Bremerlastrow$Active/Bremer_Population 
+, Black.Hawk.Prob = Black.Hawklastrow$Active/BlackHawk_Population, 
+Butler.Prob = Butlerlastrow$Active/Butler_Population,
+WSR.Prob = (Butlerlastrow$Active+ Bremerlastrow$Active)/(Butler_Population+ Bremer_Population), 
+Linn.Prob = LinnData[nrow(LinnData),]$Active/Linn_Population,
+Johnson.Prob = JohnsonData[nrow(JohnsonData),]$Active/Johnson_Population)
+names(Risk) = c("Date", "Bremer.Prob", "Black.Hawk.Prob", "Butler.Prob","WSR.Prob", "Linn.Prob", "Johnson.Prob")
 Risk = Risk %>% mutate(
   Bremer.Risk = 1-(1-Bremer.Prob*5)^groupsize,
   Black.Hawk.Risk = 1-(1-Black.Hawk.Prob*5)^groupsize,
