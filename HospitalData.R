@@ -1,4 +1,8 @@
 require(dplyr)
+require(lubridate)
+require(plyr)
+require(tidyverse)
+require(anytime)
 date = Sys.Date()
 URL = "https://healthdata.gov/resource/6xf2-c3ie.csv"
 URL ="https://healthdata.gov/api/views/6xf2-c3ie/rows.csv"
