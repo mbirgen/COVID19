@@ -48,7 +48,7 @@ twoyearago = closestdate(covid19,730)
 source("HospitalData.R")
 
 
- tail(inpatientSave[,c("date","inpatient_beds_used_covid")],7)
+tail(inpatientSave[,c("date","inpatient_beds_used_covid")],7)
  
 source("LoadSummary.R")
 
