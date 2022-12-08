@@ -282,7 +282,7 @@ write.csv(CompleteVaccination, "CountyData/Vaccine.csv", row.names = F)
     
 ```
 
-# Iowa COVID-19 Summary `r day`
+## Iowa COVID-19 Summary `r day`
 
 This week we had `r format(new_pos, scientific = FALSE, big.mark=",")` new positive patients (average of `r round(tail(clean$np_day, n=1), digits=1)` or `r round(tail(clean$np_day, n=1)/IowaPop*100000, digits=1)` per 100,000 new positive patients per day). The state is not reporting the number of recovered cases, but it is estimated that we have `r format(tail(Active,n=1), scientific = FALSE, big.mark = ",")` actively sick Iowans.  We no longer know the total number of tests each week.
 
