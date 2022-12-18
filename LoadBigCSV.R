@@ -76,14 +76,16 @@ newDeath <- Deaths[trows,-1]-Deaths[trows-1,-1]
 Positive[,102]=rowSums(Positive[,2:101], na.rm=TRUE)
 Positive.Tests[,102]=rowSums(Positive.Tests[,2:101], na.rm=TRUE)
 
-for(i in (nrow(Recovered2)+1):nrow(Positive)){
-    tempday = Positive$date[i]
-    lastmonth = closestdate2(Positive,tempday,28)
-    tempPos = Positive[lastmonth,]
-    tempDeath = Deaths[i,]
-    tempRec = tempPos[,-1] - tempDeath[,-1]
-    tempRec = cbind(date = as.character(tempday), tempRec)
-    Recovered2 = rbind(Recovered2,tempRec)
+if(nrow(Recovered2)<nrow(Positive)) {
+    for(i in (nrow(Recovered2)+1):nrow(Positive)){
+        tempday = Positive$date[i]
+        lastmonth = closestdate2(Positive,tempday,28)
+        tempPos = Positive[lastmonth,]
+        tempDeath = Deaths[i,]
+        tempRec = tempPos[,-1] - tempDeath[,-1]
+        tempRec = cbind(date = as.character(tempday), tempRec)
+        Recovered2 = rbind(Recovered2,tempRec)
+    }
 }
 
 county_names <- colnames(Positive)
