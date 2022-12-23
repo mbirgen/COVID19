@@ -314,8 +314,7 @@ NewDeaths[,1] = as.Date(NewDeaths[,1])
 NDeaths = as.data.frame(merge(NewDeaths, OldDeaths, by ="EventDateOfDeath", all=T))
 NDeaths[is.na(NDeaths)] <- 0
 NDeaths = NDeaths %>% mutate(change = Total.Deaths.x
- -Total.Deaths.y,
- NewD = paste0(EventDateOfDeath," (",change,")")) 
+ -Total.Deaths.y,  NewD = paste0(EventDateOfDeath," (",change,")")) 
 NDeaths[NDeaths$change != 0,"NewD"]
 
 # NweekDeaths = as.data.frame(merge(NewDeaths, weekOldDeaths, by ="EventDateOfDeath"))
