@@ -40,6 +40,7 @@ covid19 <- read.csv("covid19.csv",
                     stringsAsFactors = FALSE)
 names(covid19)[1] <- "date"
 require(anytime)
+require(usethis)
 covid19$date = anydate(covid19$date)
 oneyearago = closestdate(covid19,365)
 twoyearago = closestdate(covid19,730)
