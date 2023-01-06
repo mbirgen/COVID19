@@ -4,7 +4,7 @@ require(plyr)
 require(tidyverse)
 require(anytime)
 date = Sys.Date()
-URL = "https://healthdata.gov/resource/6xf2-c3ie.csv"
+# URL = "https://healthdata.gov/resource/6xf2-c3ie.csv"
 URL ="https://healthdata.gov/api/views/6xf2-c3ie/rows.csv"
 inpatient = read.csv(URL, na.strings = c("-999999","-999999.0"))
 inpatient = inpatient %>% filter(state == "IA") %>%
