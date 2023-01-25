@@ -59,7 +59,8 @@ source("LoadSummary.R")
 source("LoadBigCSV.R")
 ```
 ```{r}
-qplot(date, hospitalized, data = tail(covid19, n=80))+geom_smooth(span = 0.3, se = TRUE) 
+# qplot(date, hospitalized, 
+ggplot(data = tail(covid19, n=80), aes(date, hospitalized)) + geom_point() +geom_smooth(span = 0.3, se = TRUE) 
 
 ##############################################
 mergedYearonYearHospMeans = covid19 %>%
@@ -70,7 +71,7 @@ mergedYearonYearHospMeans = covid19 %>%
     group_by(year, week) %>%
     summarise_at(vars(hospitalized), list(WeeklyAve = mean)) 
 
-qplot(week, WeeklyAve, data=mergedYearonYearHospMeans, color = year) + xlab("Week of Year") + ylab("Weekly Average Hospitalized")+geom_smooth(span = 0.3, se = TRUE)
+ggplot(data=mergedYearonYearHospMeans, aes(week, WeeklyAve, color = year)) + geom_point()+geom_smooth(span = 0.5, se = TRUE)  + xlab("Week of Year")+ ylab("Weekly Average Hospitalized")
 ```
 
 
