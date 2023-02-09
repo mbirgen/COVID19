@@ -351,12 +351,12 @@ dev.off()
 
 ```{r,echo=False}
 
- ppositive <-qplot(date, New.Percent.Positive, data = clean[-(1:7),], geom = c("point", "smooth")) + ylab("Fraction Positive") +
- ggtitle("Fraction of Positive COVID-19 Tests in Iowa")
- png(paste(day,"ppositive.png"))
- ppositive
- dev.off()
- ppositive
+ # ppositive <-qplot(date, New.Percent.Positive, data = clean[-(1:7),], geom = c("point", "smooth")) + ylab("Fraction Positive") +
+ # ggtitle("Fraction of Positive COVID-19 Tests in Iowa")
+ # png(paste(day,"ppositive.png"))
+ # ppositive
+ # dev.off()
+ # ppositive
 
  # p7positive <-qplot(date, Week.Positivity.Rate, data = clean[-(1:20),], geom = c("point", "smooth")) + ylab("Fraction Positive") +
  # ggtitle("7 day average of Fraction of Positive COVID-19 Tests in Iowa")
