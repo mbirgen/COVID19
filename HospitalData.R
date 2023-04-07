@@ -4,6 +4,11 @@ require(plyr)
 require(tidyverse)
 require(anytime)
 date = Sys.Date()
+covid19 <- read.csv("covid19.csv", 
+                    stringsAsFactors = FALSE)
+names(covid19)[1] <- "date"
+require(anytime)
+
 # URL = "https://healthdata.gov/resource/6xf2-c3ie.csv"
 URL ="https://healthdata.gov/api/views/6xf2-c3ie/rows.csv"
 inpatient = read.csv(URL, na.strings = c("-999999","-999999.0"))
