@@ -1,6 +1,7 @@
+
+require(plyr)
 require(dplyr)
 require(lubridate)
-require(plyr)
 require(tidyverse)
 require(anytime)
 date = Sys.Date()
@@ -25,7 +26,7 @@ if(sum(grepl(date, covid19$date)) == 0){
     covid19[nrow(covid19)+1, "date"] = as.character(date)
 } else
 {
-    inpatientSave[inpatientSave$date == date,] = temp
+    inpatientSave[inpatientSave$date == as.character(date),] = temp
     inpatientSave$date[nrow(inpatientSave)] = as.character(date)
 }
 inpatientSave = inpatientSave %>% unique() %>% 
@@ -42,3 +43,4 @@ covid19[covid19$date == as.Date(date),"Admit"] =
     sum((inpatient %>% select(contains("previous_day")))[1:4])    
 covid19 = covid19 %>% unique()
 write.csv(covid19, "covid19.csv",row.names = FALSE, na="")
+

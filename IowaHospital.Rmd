@@ -10,16 +10,20 @@ covid19 <- read.csv("covid19.csv",
 names(covid19)[1] <- "date"
 require(anytime)
 closestdate <- function(DT, D){
-    which(abs(DT$date-(date-D)) == 
-              min(abs(DT$date-date+D)))
+    which(abs(anydate(DT$date)-(date-D)) == 
+              min(abs(anydate(DT$date)-date+D)))
 }
 
 covid19$date = anydate(covid19$date)
 oneyearago = closestdate(covid19,365)
 twoyearago = closestdate(covid19,730)
+oneweekago = closestdate(inpatientSave,7)
+tail_oneweekago = nrow(inpatientSave) - oneweekago
+tail_onemonthago = nrow(inpatientSave) - closestdate(inpatientSave,28)
 
 # inpatientSave = inpatientSave[-nrow(inpatientSave),]
 source("HospitalData.R")
+inpatientSave <- inpatientSave[!duplicated(inpatientSave[,-1]),]
 
 
 tail(inpatientSave[,c("date","inpatient_beds_used_covid")],7)
@@ -45,4 +49,4 @@ ggplot(data=mergedYearonYearHospMeans, aes(week, WeeklyAve, color = year)) + geo
 ## Iowa COVID-19 Hospitalization Summary `r date`
 
 
-According to HHS, there are `r inpatientSave[nrow(inpatientSave),"inpatient_beds_used_covid"]`  Iowans hospitalized for COVID-19, `r tail(inpatientSave$total_adult_patients_hospitalized_confirmed_covid, n=1)` adults and `r tail(inpatientSave$total_pediatric_patients_hospitalized_confirmed_covid, n=1)` children. Of those, `r tail(inpatientSave$total_ICU, n=1)` (`r tail( round(inpatientSave$total_ICU/inpatientSave$inpatient_beds_used_covid*100,1) , n=1)`% of hospitalized) are in the ICU, `r tail(inpatientSave$staffed_icu_adult_patients_confirmed_covid, n=1)` adults and `r tail(inpatientSave$staffed_icu_pediatric_patients_confirmed_covid, n=1)` children. Hospitals have reported `r sum(tail(inpatientSave$deaths_covid, n=7))` COVID-19 deaths in the last 7 days and `r sum(tail(inpatientSave$deaths_covid, n=28))` COVID-19 deaths in the last 4 weeks.
+According to HHS, there are `r inpatientSave[nrow(inpatientSave),"inpatient_beds_used_covid"]`  Iowans hospitalized for COVID-19, `r tail(inpatientSave$total_adult_patients_hospitalized_confirmed_and_suspected_covid, n=1)` adults and `r tail(inpatientSave$total_pediatric_patients_hospitalized_confirmed_and_suspected_covid, n=1)` children. Previous day admission was `r tail(inpatientSave$previous_day_admission_adult_covid_confirmed, n=1) + tail(inpatientSave$previous_day_admission_adult_covid_suspected,1) ` adults and `r tail(inpatientSave$previous_day_admission_pediatric_covid_confirmed, n=1) + tail(inpatientSave$previous_day_admission_pediatric_covid_suspected,1) ` children. Of those, `r tail(inpatientSave$total_ICU, n=1)` (`r tail( round(inpatientSave$total_ICU/inpatientSave$inpatient_beds_used_covid*100,1) , n=1)`% of hospitalized) are in the ICU, `r tail(inpatientSave$staffed_icu_adult_patients_confirmed_covid, n=1)` adults and `r tail(inpatientSave$staffed_icu_pediatric_patients_confirmed_covid, n=1)` children. Hospitals have reported `r sum(tail(inpatientSave$deaths_covid, n=tail_oneweekago))` COVID-19 deaths in the last 7 days and `r sum(tail(inpatientSave$deaths_covid, n=tail_onemonthago))` COVID-19 deaths in the last 4 weeks.
